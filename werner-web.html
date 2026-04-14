@@ -1100,7 +1100,7 @@ async function sendMessage() {
   const langContext = selectedLang !== 'Genel' ? ` Kullanıcı şu anda ${selectedLang} dilinde çalışıyor.` : '';
 
   try {
-    const res = await fetch('http://192.168.1.26:8045/v1/chat/completions', {
+    const res = await fetch('https://cleveland-criterion-metallica-remarkable.trycloudflare.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
