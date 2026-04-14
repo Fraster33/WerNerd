@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>WerNer — Kod Yardımcısı</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #1a1a26;
+  --surface3: #22223a;
+  --border: #2a2a3d;
+  --accent: #00ff88;
+  --accent-dim: rgba(0,255,136,0.1);
+  --purple: #a78bfa;
+  --text: #e8e8f0;
+  --muted: #6b6b8a;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; height: -webkit-fill-available; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: -webkit-fill-available;
+  overflow: hidden;
+}
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.022) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none; z-index:0;
+}
+
+/* ===== HEADER ===== */
+header {
+  position:relative; z-index:20;
+  display:flex; align-items:center; gap:10px;
+  padding: 10px 16px;
+  padding-top: calc(10px + var(--safe-top));
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  flex-shrink: 0;
+}
+.logo { font-size:1.15rem; font-weight:800; letter-spacing:-0.5px; white-space:nowrap; }
+.logo span { color: var(--accent); }
+.model-select {
+  appearance:none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 26px 5px 9px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  cursor:pointer; outline:none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b8a'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  transition: border-color 0.2s;
+  max-width: 140px;
+}
+.model-select:focus { border-color: var(--accent); }
+.header-right { margin-left:auto; display:flex; align-items:center; gap:6px; }
+.token-badge {
+  font-family:'JetBrains Mono',monospace; font-size:0.62rem;
+  color:var(--muted); background:var(--surface2);
+  border:1px solid var(--border); border-radius:6px; padding:3px 8px;
+}
+.icon-btn {
+  background:none; border:1px solid var(--border); border-radius:8px;
+  width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--muted); font-size:0.85rem; transition:all 0.15s;
+  flex-shrink:0;
+}
+.icon-btn:hover, .icon-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.status-dot {
+  width:7px; height:7px; border-radius:50%; background:var(--muted);
+  display:inline-block; transition:all 0.3s; flex-shrink:0;
+}
+.status-dot.active { background:var(--accent); box-shadow:0 0 8px var(--accent); animation: pulse-dot 2s infinite; }
+@keyframes pulse-dot {
+  0%,100% { box-shadow:0 0 6px var(--accent); }
+  50% { box-shadow:0 0 14px var(--accent); }
+}
+
+/* ===== SETUP SCREEN ===== */
+#setup-screen {
+  position:relative; z-index:10; flex:1;
+  display:flex; align-items:center; justify-content:center; padding:24px 20px;
+  overflow-y: auto;
+}
+.setup-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:36px 32px; max-width:420px; width:100%; text-align:center;
+  animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(20px) scale(0.97); }
+  to { opacity:1; transform:translateY(0) scale(1); }
+}
+.setup-icon { font-size:2.5rem; margin-bottom:14px; display:block; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+.setup-card h2 { font-size:1.5rem; font-weight:800; margin-bottom:8px; }
+.setup-card p { color:var(--muted); font-size:0.84rem; margin-bottom:22px; line-height:1.65; }
+.field-label { font-size:0.67rem; color:var(--muted); text-align:left; margin-bottom:5px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.06em; }
+.key-wrap { position:relative; margin-bottom:12px; }
+.key-wrap input {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:12px 44px 12px 13px; color:var(--text);
+  font-family:'JetBrains Mono',monospace; font-size:0.82rem; outline:none; transition:border-color 0.2s;
+  -webkit-appearance: none;
+}
+.key-wrap input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,0.08); }
+.eye-btn {
+  position:absolute; right:11px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.95rem; padding:6px;
+}
+.btn-primary {
+  width:100%; background:var(--accent); color:#000; border:none; border-radius:10px;
+  padding:13px; font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s; letter-spacing:0.02em;
+  -webkit-appearance:none;
+}
+.btn-primary:active { opacity:0.82; transform:scale(0.98); }
+.setup-note {
+  margin-top:14px; background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.18);
+  border-radius:8px; padding:10px 12px; font-size:0.72rem; color:var(--yellow); text-align:left; line-height:1.55;
+}
+
+/* ===== APP SCREEN ===== */
+#app-screen { display:none; position:relative; z-index:10; flex:1; flex-direction:column; min-height:0; }
+#app-screen.visible { display:flex; }
+.layout { display:flex; flex:1; min-height:0; }
+
+/* ===== SIDEBAR (Desktop) ===== */
+.sidebar {
+  width:200px; flex-shrink:0;
+  background:var(--surface); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+  transition:width 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar.hidden { width:0; }
+.sidebar-inner { padding:14px; display:flex; flex-direction:column; gap:5px; min-width:200px; overflow-y:auto; }
+.sidebar-title { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; font-family:'JetBrains Mono',monospace; margin-bottom:2px; padding:0 2px; }
+.quick-btn {
+  background:transparent; border:1px solid transparent; border-radius:8px;
+  padding:8px 10px; color:var(--muted); font-size:0.76rem; cursor:pointer;
+  text-align:left; transition:all 0.15s; width:100%; display:flex; align-items:center; gap:8px;
+  font-family:'Syne',sans-serif;
+}
+.quick-btn:hover, .quick-btn:active { border-color:var(--border); color:var(--text); background:var(--surface2); }
+.quick-btn .qi { font-size:0.9rem; flex-shrink:0; }
+.sidebar-divider { height:1px; background:var(--border); margin:5px 0; }
+
+/* ===== MOBILE DRAWER ===== */
+.mobile-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+  z-index:50; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  opacity:0; transition:opacity 0.25s;
+}
+.mobile-overlay.open { opacity:1; }
+.mobile-drawer {
+  position:fixed; left:0; top:0; bottom:0; width:260px;
+  background:var(--surface); border-right:1px solid var(--border);
+  z-index:51; transform:translateX(-100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:flex; flex-direction:column; overflow:hidden;
+  padding-top: var(--safe-top);
+}
+.mobile-drawer.open { transform:translateX(0); }
+.drawer-header {
+  padding:16px 16px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.drawer-header .logo { font-size:1.1rem; }
+.drawer-close {
+  background:none; border:1px solid var(--border); border-radius:7px;
+  width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--muted); font-size:0.75rem;
+}
+.drawer-inner { padding:12px; display:flex; flex-direction:column; gap:4px; overflow-y:auto; flex:1; }
+
+/* ===== MAIN ===== */
+.main { flex:1; display:flex; flex-direction:column; min-height:0; min-width:0; }
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  display:flex; align-items:center; gap:5px; padding:7px 12px;
+  border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto;
+  background:var(--surface); scrollbar-width:none;
+}
+.toolbar::-webkit-scrollbar { display:none; }
+.lang-pill {
+  background:var(--surface2); border:1px solid var(--border); border-radius:20px;
+  padding:4px 10px; color:var(--muted); font-family:'JetBrains Mono',monospace;
+  font-size:0.68rem; cursor:pointer; transition:all 0.15s; white-space:nowrap; flex-shrink:0;
+  -webkit-appearance:none;
+}
+.lang-pill:hover, .lang-pill.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.lang-pill:active { transform:scale(0.96); }
+
+/* ===== CHAT ===== */
+#chat {
+  flex:1; overflow-y:auto; padding:14px 16px;
+  display:flex; flex-direction:column; gap:14px;
+  scroll-behavior:smooth; min-height:0;
+  -webkit-overflow-scrolling: touch;
+}
+#chat::-webkit-scrollbar { width:3px; }
+#chat::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:8px; padding:30px 20px;
+}
+.empty-glyph {
+  font-size:2.8rem; opacity:0.15; font-family:'JetBrains Mono',monospace;
+  font-weight:700; color:var(--accent); letter-spacing:-4px;
+  animation: glitch 4s infinite;
+}
+@keyframes glitch {
+  0%,90%,100% { text-shadow:none; opacity:0.15; }
+  92% { text-shadow:2px 0 var(--purple); opacity:0.25; }
+  94% { text-shadow:-2px 0 var(--accent); opacity:0.2; }
+  96% { text-shadow:none; opacity:0.15; }
+}
+.empty-state h3 { font-size:0.95rem; font-weight:700; color:var(--text); opacity:0.4; }
+.empty-state p { font-size:0.77rem; line-height:1.65; max-width:250px; opacity:0.4; }
+.suggestions { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px; }
+.sug-btn {
+  background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+  padding:6px 12px; font-size:0.73rem; color:var(--muted); cursor:pointer;
+  transition:all 0.15s; font-family:'Syne',sans-serif;
+}
+.sug-btn:hover, .sug-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); transform:translateY(-1px); }
+
+/* ===== MESSAGES ===== */
+.msg {
+  display:flex; gap:10px;
+  animation: msgIn 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes msgIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.msg-avatar {
+  width:30px; height:30px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.8rem; flex-shrink:0; margin-top:1px;
+}
+.msg.user .msg-avatar { background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.25); }
+.msg.assistant .msg-avatar { background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.18); }
+.msg-body { flex:1; min-width:0; }
+.msg-meta { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.msg-label { font-size:0.65rem; color:var(--muted); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.07em; }
+.msg-time { font-size:0.6rem; color:var(--muted); opacity:0.6; font-family:'JetBrains Mono',monospace; }
+.msg-actions { margin-left:auto; display:flex; gap:4px; opacity:0; transition:opacity 0.15s; }
+.msg:hover .msg-actions { opacity:1; }
+.msg-act-btn {
+  background:none; border:1px solid transparent; border-radius:5px;
+  padding:2px 7px; color:var(--muted); font-size:0.66rem; cursor:pointer; transition:all 0.15s;
+  font-family:'JetBrains Mono',monospace;
+}
+.msg-act-btn:hover, .msg-act-btn:active { border-color:var(--border); color:var(--text); background:var(--surface2); }
+
+/* ===== MARKDOWN ===== */
+.msg-content { font-size:0.86rem; line-height:1.72; word-break:break-word; }
+.msg.user .msg-content { color:#c4b5fd; }
+.msg-content p { margin-bottom:10px; }
+.msg-content p:last-child { margin-bottom:0; }
+.msg-content h1,.msg-content h2,.msg-content h3 { font-weight:700; margin:14px 0 6px; color:var(--text); }
+.msg-content h1 { font-size:1.05rem; }
+.msg-content h2 { font-size:0.97rem; }
+.msg-content h3 { font-size:0.9rem; }
+.msg-content ul,.msg-content ol { padding-left:18px; margin-bottom:10px; }
+.msg-content li { margin-bottom:4px; }
+.msg-content a { color:var(--accent); text-decoration:none; }
+.msg-content a:hover { text-decoration:underline; }
+.msg-content blockquote { border-left:3px solid var(--accent); padding-left:12px; color:var(--muted); margin:8px 0; font-style:italic; }
+.msg-content strong { color:var(--text); font-weight:700; }
+.msg-content em { color:#a8b4d8; }
+.msg-content table { border-collapse:collapse; width:100%; margin:10px 0; font-size:0.8rem; display:block; overflow-x:auto; }
+.msg-content th { background:var(--surface2); border:1px solid var(--border); padding:7px 10px; text-align:left; font-family:'JetBrains Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; }
+.msg-content td { border:1px solid var(--border); padding:6px 10px; }
+.msg-content tr:nth-child(even) td { background:rgba(255,255,255,0.02); }
+.msg-content code:not(pre code) {
+  background:#0d0d14; border:1px solid var(--border); border-radius:5px;
+  padding:1px 6px; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--accent);
+}
+.msg-content pre {
+  background:#0d0d14; border:1px solid var(--border); border-radius:10px;
+  margin:10px 0; overflow:hidden; position:relative;
+}
+.code-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 12px; border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.025);
+}
+.code-lang { font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; }
+.code-actions { display:flex; gap:6px; }
+.copy-code-btn {
+  background:none; border:1px solid var(--border); border-radius:5px;
+  padding:2px 10px; color:var(--muted); font-size:0.66rem; cursor:pointer;
+  font-family:'JetBrains Mono',monospace; transition:all 0.15s;
+}
+.copy-code-btn:hover,.copy-code-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.msg-content pre code {
+  display:block; padding:12px 14px; overflow-x:auto;
+  font-family:'JetBrains Mono',monospace; font-size:0.78rem; line-height:1.65;
+  background:transparent !important;
+}
+.msg-content pre code::-webkit-scrollbar { height:3px; }
+.msg-content pre code::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ===== TYPING ===== */
+.typing-dots { display:flex; gap:5px; align-items:center; padding:6px 0; }
+.typing-dots span { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:typing 1.3s ease-in-out infinite; opacity:0.5; }
+.typing-dots span:nth-child(2) { animation-delay:0.2s; }
+.typing-dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes typing { 0%,60%,100% { transform:translateY(0); opacity:0.5; } 30% { transform:translateY(-6px); opacity:1; } }
+.thinking-wrap { display:flex; flex-direction:column; gap:6px; padding:6px 0; }
+.thinking-label { font-size:0.67rem; color:var(--accent); font-family:'JetBrains Mono',monospace; display:flex; align-items:center; gap:6px; opacity:0.7; animation:thinking-pulse 1.5s ease-in-out infinite; }
+@keyframes thinking-pulse { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
+.thinking-bar { height:2px; background:var(--surface3); border-radius:2px; overflow:hidden; width:160px; }
+.thinking-bar-inner { height:100%; background:linear-gradient(90deg, transparent, var(--accent), transparent); width:60%; animation:thinking-scan 1.5s ease-in-out infinite; }
+@keyframes thinking-scan { 0% { transform:translateX(-100%); } 100% { transform:translateX(280%); } }
+.search-dots::after { content:''; animation:dots 1.5s steps(3,end) infinite; }
+@keyframes dots { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
+
+/* ===== INPUT AREA ===== */
+.input-wrap {
+  padding:10px 14px 12px;
+  padding-bottom: calc(12px + var(--safe-bottom));
+  border-top:1px solid var(--border);
+  background:var(--surface); flex-shrink:0;
+}
+.input-box {
+  background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+  padding:10px 46px 10px 13px; display:flex; align-items:flex-end; gap:10px;
+  transition:border-color 0.2s, box-shadow 0.2s; position:relative;
+}
+.input-box:focus-within { border-color:rgba(0,255,136,0.35); box-shadow:0 0 0 3px rgba(0,255,136,0.06); }
+#user-input {
+  flex:1; background:none; border:none; outline:none; color:var(--text);
+  font-family:'JetBrains Mono',monospace; font-size:0.85rem; line-height:1.6;
+  resize:none; min-height:20px; max-height:120px; overflow-y:auto; padding:0;
+  -webkit-appearance:none;
+}
+#user-input::placeholder { color:var(--muted); }
+.send-btn {
+  position:absolute; right:9px; bottom:9px;
+  background:var(--accent); border:none; border-radius:8px;
+  width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.15s; color:#000; font-size:0.95rem; flex-shrink:0;
+}
+.send-btn:hover { opacity:0.85; transform:scale(1.06); }
+.send-btn:active { transform:scale(0.94); }
+.send-btn:disabled { opacity:0.25; cursor:not-allowed; transform:none; }
+.input-hint { font-size:0.63rem; color:var(--muted); font-family:'JetBrains Mono',monospace; text-align:center; margin-top:5px; opacity:0.55; }
+.img-upload-area {
+  display:none; margin-top:8px;
+}
+.img-upload-label {
+  display:flex; align-items:center; gap:8px; cursor:pointer;
+  background:var(--surface2); border:1px dashed var(--border); border-radius:9px;
+  padding:8px 14px; font-size:0.77rem; color:var(--muted); transition:all 0.15s;
+}
+.img-upload-label:hover, .img-upload-label:active { border-color:var(--accent); color:var(--accent); }
+
+/* ===== ERROR ===== */
+.error-bubble {
+  background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2);
+  border-radius:10px; padding:10px 14px; color:#fca5a5;
+  font-size:0.79rem; font-family:'JetBrains Mono',monospace; line-height:1.5;
+}
+
+/* ===== TOAST ===== */
+#toast {
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(10px);
+  background:var(--surface3); border:1px solid var(--border); border-radius:8px;
+  padding:8px 16px; font-size:0.77rem; color:var(--text);
+  opacity:0; transition:all 0.25s; pointer-events:none; z-index:200; white-space:nowrap;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,15,0.97);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 30;
+  padding-bottom: var(--safe-bottom);
+}
+.mobile-nav-items {
+  display: flex;
+  align-items: stretch;
+}
+.mobile-nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; padding: 10px 4px 8px;
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
+  transition: color 0.15s; position: relative;
+}
+.mobile-nav-btn .nav-icon { font-size: 1.1rem; line-height:1; }
+.mobile-nav-btn.active { color: var(--accent); }
+.mobile-nav-btn.active::before {
+  content:''; position:absolute; top:0; left:20%; right:20%;
+  height:2px; background:var(--accent); border-radius:0 0 3px 3px;
+}
+.mobile-nav-btn:active { transform: scale(0.92); }
+
+/* ===== MOBILE VIEWS ===== */
+.mobile-panel {
+  display: none; flex:1; flex-direction:column; min-height:0;
+  position: absolute; inset: 0; background: var(--bg); z-index: 5;
+}
+.mobile-panel.active { display:flex; }
+.panel-header {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+  flex-shrink: 0;
+}
+.panel-content { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:5px; -webkit-overflow-scrolling:touch; }
+
+/* Model panel mobile */
+.model-card {
+  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+  padding:12px 14px; cursor:pointer; transition:all 0.15s;
+}
+.model-card:active, .model-card.selected { border-color:var(--accent); background:var(--accent-dim); }
+.model-card-name { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:2px; }
+.model-card-desc { font-size:0.68rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+
+/* Lang panel mobile */
+.lang-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.lang-card {
+  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+  padding:12px; text-align:center; cursor:pointer; transition:all 0.15s;
+  font-size:0.82rem; color:var(--muted);
+}
+.lang-card:active, .lang-card.selected { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.lang-card-emoji { font-size:1.4rem; display:block; margin-bottom:4px; }
+
+/* Settings panel mobile */
+.settings-section { margin-bottom:16px; }
+.settings-title { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; font-family:'JetBrains Mono',monospace; margin-bottom:8px; }
+.settings-btn {
+  width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+  padding:12px 14px; color:var(--text); font-family:'Syne',sans-serif; font-size:0.85rem;
+  cursor:pointer; text-align:left; display:flex; align-items:center; gap:10px;
+  transition:all 0.15s; margin-bottom:6px;
+}
+.settings-btn:active { border-color:var(--accent); background:var(--accent-dim); }
+.settings-btn .si { font-size:1rem; }
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 768px) {
+  /* Hide desktop sidebar */
+  .sidebar { display: none !important; }
+  /* Show mobile nav */
+  .mobile-bottom-nav { display: block; }
+  /* Adjust layout for bottom nav */
+  #app-screen {
+    padding-bottom: calc(54px + var(--safe-bottom));
+  }
+  /* Hide desktop toolbar on mobile - moved to panel */
+  .toolbar { display: none; }
+  /* Adjust header */
+  header { padding: 8px 14px; padding-top: calc(8px + var(--safe-top)); }
+  .model-select { display: none; }
+  .token-badge { display: none; }
+  /* Adjust chat */
+  #chat { padding: 12px 12px; gap:12px; }
+  /* Toast above bottom nav */
+  #toast { bottom: calc(70px + var(--safe-bottom)); }
+  /* Mobile panel covers main content */
+  .layout { position: relative; }
+  /* Input hint on mobile */
+  .input-hint { display: none; }
+  /* Message actions always visible on mobile */
+  .msg-actions { opacity: 1 !important; }
+  /* Smaller avatar on mobile */
+  .msg-avatar { width:26px; height:26px; font-size:0.75rem; }
+  .msg-content { font-size:0.84rem; }
+}
+
+@media (min-width: 769px) {
+  /* Hide mobile stuff on desktop */
+  .mobile-bottom-nav { display: none !important; }
+  .mobile-panel { display: none !important; }
+  #app-screen { padding-bottom: 0; }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  #chat { padding: 8px 12px; gap:8px; }
+  .empty-state { padding: 16px 20px; gap:5px; }
+  .empty-glyph { font-size:2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Kod<span>AI</span></div>
+  <!-- Desktop model select -->
+  <select class="model-select" id="model-select">
+    <option value="gemini-3-flash">Gemini 3 Flash</option>
+    <option value="gemini-3-pro-low">Gemini 3 Pro (Low)</option>
+    <option value="gemini-3-pro-high">Gemini 3 Pro (High)</option>
+    <option value="gemini-3.1-pro-low">Gemini 3.1 Pro (Low)</option>
+    <option value="gemini-3.1-pro-high">Gemini 3.1 Pro (High)</option>
+    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+    <option value="gemini-2.5-flash-thinking">Gemini 2.5 Flash Thinking</option>
+    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+    <option value="gemini-3.1-flash-image">Gemini 3.1 Flash (Görsel)</option>
+    <option value="gemini-3-pro-image">Görsel Oluşturma</option>
+  </select>
+  <div class="header-right">
+    <span class="token-badge" id="token-badge">~0 token</span>
+    <button class="icon-btn" onclick="exportChat()" title="Dışa Aktar">⬇</button>
+    <button class="icon-btn desktop-only" id="sidebar-toggle" onclick="toggleSidebar()" title="Kenar Çubuğu">☰</button>
+    <button class="icon-btn" onclick="disconnect()" id="disc-btn" style="display:none" title="Çıkış">✕</button>
+    <span class="status-dot" id="status-dot"></span>
+  </div>
+</header>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <span class="setup-icon">⌨️</span>
+    <h2>WerNer</h2>
+    <p>Antigravity Tools API key'inizi girerek başlayın. Key sadece bu sekmenin belleğinde tutulur.</p>
+    <div class="field-label">API Key</div>
+    <div class="key-wrap">
+      <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off"
+        onkeydown="if(event.key==='Enter')connect()" />
+      <button class="eye-btn" onclick="toggleEye()">👁</button>
+    </div>
+    <button class="btn-primary" onclick="connect()">Bağlan →</button>
+    <div class="setup-note">🔒 Key hiçbir sunucuya gönderilmez. Yalnızca yerel proxy'nize iletilir.</div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="layout">
+
+    <!-- DESKTOP SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="sidebar-title">Hızlı Başlat</div>
+        <button class="quick-btn" onclick="fillInput('Bu kodu açıkla ve yorum satırları ekle:')"><span class="qi">💬</span>Kodu Açıkla</button>
+        <button class="quick-btn" onclick="fillInput('Bu koddaki hataları bul ve düzelt:')"><span class="qi">🐛</span>Hata Düzelt</button>
+        <button class="quick-btn" onclick="fillInput('Bu kodu optimize et, daha hızlı ve temiz yap:')"><span class="qi">⚡</span>Optimize Et</button>
+        <button class="quick-btn" onclick="fillInput('Bu kod için unit testler yaz:')"><span class="qi">🧪</span>Test Yaz</button>
+        <button class="quick-btn" onclick="fillInput('Bu kodu daha okunabilir hale getir (refactor):')"><span class="qi">♻️</span>Refactor</button>
+        <button class="quick-btn" onclick="fillInput('Bu fonksiyon için dokümantasyon yaz:')"><span class="qi">📝</span>Dökümantasyon</button>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-title">Dil Modu</div>
+        <button class="quick-btn" onclick="setLangDirect('Python')"><span class="qi">🐍</span>Python</button>
+        <button class="quick-btn" onclick="setLangDirect('JavaScript')"><span class="qi">⚡</span>JavaScript</button>
+        <button class="quick-btn" onclick="setLangDirect('React')"><span class="qi">⚛</span>React</button>
+        <button class="quick-btn" onclick="setLangDirect('SQL')"><span class="qi">🗄</span>SQL</button>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-title">Araçlar</div>
+        <button class="quick-btn" onclick="clearChat()"><span class="qi">🗑</span>Sohbeti Temizle</button>
+        <button class="quick-btn" onclick="exportChat()"><span class="qi">⬇</span>Dışa Aktar</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <!-- DESKTOP TOOLBAR -->
+      <div class="toolbar" id="main-toolbar">
+        <button class="lang-pill active" onclick="setLang(this,'Genel')">Genel</button>
+        <button class="lang-pill" onclick="setLang(this,'Python')">🐍 Python</button>
+        <button class="lang-pill" onclick="setLang(this,'JavaScript')">⚡ JS</button>
+        <button class="lang-pill" onclick="setLang(this,'TypeScript')">🔷 TS</button>
+        <button class="lang-pill" onclick="setLang(this,'HTML/CSS')">🎨 HTML/CSS</button>
+        <button class="lang-pill" onclick="setLang(this,'React')">⚛ React</button>
+        <button class="lang-pill" onclick="setLang(this,'SQL')">🗄 SQL</button>
+        <button class="lang-pill" onclick="setLang(this,'C++')">⚙ C++</button>
+        <button class="lang-pill" onclick="setLang(this,'Rust')">🦀 Rust</button>
+        <button class="lang-pill" onclick="setLang(this,'Go')">🐹 Go</button>
+      </div>
+
+      <!-- CHAT -->
+      <div id="chat">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-glyph">{ }</div>
+          <h3>Ne kodlamak istiyorsunuz?</h3>
+          <p>Hata ayıklama, kod açıklama, optimizasyon — her şeyi sorabilirsiniz.</p>
+          <div class="suggestions">
+            <button class="sug-btn" onclick="fillInput('Python ile basit bir web scraper yaz')">🐍 Web Scraper</button>
+            <button class="sug-btn" onclick="fillInput('JavaScript async/await nasıl çalışır')">⚡ Async/Await</button>
+            <button class="sug-btn" onclick="fillInput('SQL JOIN türlerini açıkla')">🗄 SQL JOIN</button>
+            <button class="sug-btn" onclick="fillInput('React hooks nedir, örnek ver')">⚛ React Hooks</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE PANELS (inside .main, visible on mobile) -->
+
+      <!-- SHORTCUTS PANEL -->
+      <div class="mobile-panel" id="panel-shortcuts">
+        <div class="panel-header">⚡ Hızlı Başlat</div>
+        <div class="panel-content">
+          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kodu açıkla ve yorum satırları ekle:')"><span class="qi">💬</span>Kodu Açıkla</button>
+          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu koddaki hataları bul ve düzelt:')"><span class="qi">🐛</span>Hata Düzelt</button>
+          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kodu optimize et, daha hızlı ve temiz yap:')"><span class="qi">⚡</span>Optimize Et</button>
+          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kod için unit testler yaz:')"><span class="qi">🧪</span>Test Yaz</button>
+          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kodu daha okunabilir hale getir (refactor):')"><span class="qi">♻️</span>Refactor</button>
+          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu fonksiyon için dokümantasyon yaz:')"><span class="qi">📝</span>Dökümantasyon</button>
+          <div class="sidebar-divider" style="margin:8px 0;"></div>
+          <div class="sidebar-title">Dil Modu: <span id="mobile-current-lang" style="color:var(--accent)">Genel</span></div>
+          <div class="lang-grid">
+            <div class="lang-card selected" id="lc-Genel" onclick="setLangMobile(this,'Genel')"><span class="lang-card-emoji">🌐</span>Genel</div>
+            <div class="lang-card" id="lc-Python" onclick="setLangMobile(this,'Python')"><span class="lang-card-emoji">🐍</span>Python</div>
+            <div class="lang-card" id="lc-JavaScript" onclick="setLangMobile(this,'JavaScript')"><span class="lang-card-emoji">⚡</span>JavaScript</div>
+            <div class="lang-card" id="lc-TypeScript" onclick="setLangMobile(this,'TypeScript')"><span class="lang-card-emoji">🔷</span>TypeScript</div>
+            <div class="lang-card" id="lc-HTMLCSS" onclick="setLangMobile(this,'HTML/CSS')"><span class="lang-card-emoji">🎨</span>HTML/CSS</div>
+            <div class="lang-card" id="lc-React" onclick="setLangMobile(this,'React')"><span class="lang-card-emoji">⚛</span>React</div>
+            <div class="lang-card" id="lc-SQL" onclick="setLangMobile(this,'SQL')"><span class="lang-card-emoji">🗄</span>SQL</div>
+            <div class="lang-card" id="lc-Rust" onclick="setLangMobile(this,'Rust')"><span class="lang-card-emoji">🦀</span>Rust</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODELS PANEL -->
+      <div class="mobile-panel" id="panel-models">
+        <div class="panel-header">🤖 Model Seç</div>
+        <div class="panel-content" id="model-cards">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- SETTINGS PANEL -->
+      <div class="mobile-panel" id="panel-settings">
+        <div class="panel-header">⚙ Ayarlar</div>
+        <div class="panel-content">
+          <div class="settings-section">
+            <div class="settings-title">Sohbet</div>
+            <button class="settings-btn" onclick="clearChat(); switchMobileTab('chat')"><span class="si">🗑</span>Sohbeti Temizle</button>
+            <button class="settings-btn" onclick="exportChat()"><span class="si">⬇</span>Dışa Aktar (.md)</button>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">Bilgi</div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+              <div style="font-size:0.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7;">
+                <div>🔌 API: <span id="settings-api-status" style="color:var(--muted)">Bağlı değil</span></div>
+                <div style="margin-top:4px;">📊 Token: <span id="settings-token-count">0</span></div>
+                <div style="margin-top:4px;">💬 Mesaj: <span id="settings-msg-count">0</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">Hesap</div>
+            <button class="settings-btn" onclick="disconnect()" style="border-color:rgba(239,68,68,0.3);color:#fca5a5;"><span class="si">✕</span>Çıkış Yap</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT -->
+      <div class="input-wrap" id="input-wrap">
+        <div class="input-box">
+          <textarea id="user-input"
+            placeholder="Kod sorunuzu yazın..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">&#9658;</button>
+        </div>
+        <div class="input-hint">Enter → gönder &nbsp;·&nbsp; Shift+Enter → yeni satır</div>
+        <div class="img-upload-area" id="image-upload-wrap">
+          <label for="img-input" class="img-upload-label">
+            <span>🖼</span> <span id="img-label">Görsel seç veya buraya sürükle</span>
+            <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
+          </label>
+          <div id="img-preview-wrap" style="display:none;margin-top:6px;position:relative;display:inline-block;">
+            <img id="img-preview" style="max-height:80px;border-radius:8px;border:1px solid var(--border);">
+            <button onclick="clearImage()" style="position:absolute;top:-6px;right:-6px;background:var(--red);border:none;border-radius:50%;width:18px;height:18px;color:#fff;font-size:0.65rem;cursor:pointer;line-height:1;">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-bottom-nav" id="mobile-nav">
+  <div class="mobile-nav-items">
+    <button class="mobile-nav-btn active" id="nav-chat" onclick="switchMobileTab('chat')">
+      <span class="nav-icon">💬</span>Sohbet
+    </button>
+    <button class="mobile-nav-btn" id="nav-shortcuts" onclick="switchMobileTab('shortcuts')">
+      <span class="nav-icon">⚡</span>Araçlar
+    </button>
+    <button class="mobile-nav-btn" id="nav-models" onclick="switchMobileTab('models')">
+      <span class="nav-icon">🤖</span>Model
+    </button>
+    <button class="mobile-nav-btn" id="nav-settings" onclick="switchMobileTab('settings')">
+      <span class="nav-icon">⚙</span>Ayarlar
+    </button>
+  </div>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+// ===== STATE =====
+let apiKey = '';
+let selectedLang = 'Genel';
+let selectedModel = 'gemini-3-flash';
+let messages = [];
+let totalTokens = 0;
+let isLoading = false;
+let sidebarOpen = true;
+let selectedImageData = null;
+let selectedImageMime = null;
+let currentMobileTab = 'chat';
+
+// ===== MODEL DATA =====
+const MODELS = [
+  { value: 'gemini-3-flash', name: 'Gemini 3 Flash', desc: 'Hızlı & verimli' },
+  { value: 'gemini-3-pro-low', name: 'Gemini 3 Pro Low', desc: 'Pro, düşük bütçe' },
+  { value: 'gemini-3-pro-high', name: 'Gemini 3 Pro High', desc: 'Pro, yüksek kalite' },
+  { value: 'gemini-3.1-pro-low', name: 'Gemini 3.1 Pro Low', desc: 'En yeni Pro' },
+  { value: 'gemini-3.1-pro-high', name: 'Gemini 3.1 Pro High', desc: 'En yeni Pro Max' },
+  { value: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', desc: 'Güçlü & kapsamlı' },
+  { value: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Dengeli seçim' },
+  { value: 'gemini-2.5-flash-thinking', name: 'Gemini 2.5 Flash Thinking', desc: 'Derin düşünme modu' },
+  { value: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', desc: 'Ultra hafif' },
+  { value: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Görsel', desc: 'Görsel girdi destekli' },
+  { value: 'gemini-3-pro-image', name: 'Görsel Oluşturma', desc: 'Resim üretimi (1:1)' },
+];
+
+// ===== INIT =====
+function initModelCards() {
+  const container = document.getElementById('model-cards');
+  container.innerHTML = MODELS.map(m => `
+    <div class="model-card ${m.value === selectedModel ? 'selected' : ''}" 
+         id="mc-${m.value.replace(/\./g,'-')}"
+         onclick="selectModelMobile('${m.value}', this)">
+      <div class="model-card-name">${m.name}</div>
+      <div class="model-card-desc">${m.desc}</div>
+    </div>
+  `).join('');
+}
+
+// ===== SETUP =====
+function connect() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) { showToast('⚠️ API key girin'); return; }
+  apiKey = key;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').classList.add('visible');
+  document.getElementById('status-dot').classList.add('active');
+  document.getElementById('disc-btn').style.display = 'flex';
+  document.getElementById('settings-api-status').textContent = 'Bağlandı ✓';
+  document.getElementById('settings-api-status').style.color = 'var(--accent)';
+  initModelCards();
+  document.getElementById('user-input').focus();
+}
+function disconnect() {
+  if (!confirm('Çıkış yapılsın mı? Sohbet silinecek.')) return;
+  apiKey = ''; messages = []; totalTokens = 0;
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('status-dot').classList.remove('active');
+  document.getElementById('disc-btn').style.display = 'none';
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('settings-api-status').textContent = 'Bağlı değil';
+  document.getElementById('settings-api-status').style.color = 'var(--muted)';
+  clearChat();
+}
+function toggleEye() {
+  const i = document.getElementById('api-key-input');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+// ===== DESKTOP SIDEBAR =====
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('hidden', !sidebarOpen);
+}
+
+// ===== MOBILE TABS =====
+function switchMobileTab(tab) {
+  currentMobileTab = tab;
+  ['chat','shortcuts','models','settings'].forEach(t => {
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === tab);
+    if (t !== 'chat') {
+      document.getElementById('panel-' + t)?.classList.toggle('active', t === tab);
+    }
+  });
+  // Chat is base layer
+  const inputWrap = document.getElementById('input-wrap');
+  const chatEl = document.getElementById('chat');
+  if (tab === 'chat') {
+    inputWrap.style.display = '';
+    chatEl.style.display = '';
+  } else {
+    inputWrap.style.display = 'none';
+    chatEl.style.display = 'none';
+  }
+  // Update settings stats
+  if (tab === 'settings') {
+    document.getElementById('settings-token-count').textContent = totalTokens.toLocaleString();
+    document.getElementById('settings-msg-count').textContent = messages.length;
+  }
+}
+function fillAndSwitch(text) {
+  fillInput(text);
+  switchMobileTab('chat');
+  setTimeout(() => document.getElementById('user-input').focus(), 100);
+}
+
+// ===== LANG & MODEL =====
+function setLang(btn, lang) {
+  document.querySelectorAll('.lang-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedLang = lang;
+}
+function setLangDirect(lang) {
+  selectedLang = lang;
+  showToast('Dil: ' + lang);
+}
+function setLangMobile(el, lang) {
+  document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLang = lang;
+  document.getElementById('mobile-current-lang').textContent = lang;
+  showToast('✓ Dil: ' + lang);
+}
+function selectModelMobile(val, el) {
+  selectedModel = val;
+  document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  // sync desktop select
+  document.getElementById('model-select').value = val;
+  const m = MODELS.find(x => x.value === val);
+  showToast('Model: ' + (m ? m.name : val));
+  const isImg = val.includes('image');
+  document.getElementById('image-upload-wrap').style.display = isImg ? 'block' : 'none';
+  if (!isImg) clearImage();
+}
+document.getElementById('model-select').addEventListener('change', e => {
+  selectedModel = e.target.value;
+  const m = MODELS.find(x => x.value === selectedModel);
+  showToast('Model: ' + (m ? m.name : selectedModel));
+  const isImg = selectedModel.includes('image');
+  document.getElementById('image-upload-wrap').style.display = isImg ? 'block' : 'none';
+  if (!isImg) clearImage();
+  // sync mobile cards
+  document.querySelectorAll('.model-card').forEach(c => {
+    c.classList.toggle('selected', c.id === 'mc-' + selectedModel.replace(/\./g,'-'));
+  });
+});
+
+// ===== IMAGE HANDLING =====
+function handleImageSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    selectedImageData = dataUrl.split(',')[1];
+    selectedImageMime = file.type;
+    document.getElementById('img-preview').src = dataUrl;
+    document.getElementById('img-preview-wrap').style.display = 'inline-block';
+    document.getElementById('img-label').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage() {
+  selectedImageData = null; selectedImageMime = null;
+  document.getElementById('img-input').value = '';
+  document.getElementById('img-preview-wrap').style.display = 'none';
+  document.getElementById('img-label').textContent = 'Görsel seç veya buraya sürükle';
+}
+
+// ===== INPUT =====
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function fillInput(text) {
+  const el = document.getElementById('user-input');
+  el.value = text;
+  el.focus();
+  autoResize(el);
+}
+
+// ===== CLEAR =====
+function clearChat() {
+  messages = []; totalTokens = 0; updateTokens();
+  document.getElementById('chat').innerHTML = `
+    <div class="empty-state" id="empty-state">
+      <div class="empty-glyph">{ }</div>
+      <h3>Ne kodlamak istiyorsunuz?</h3>
+      <p>Hata ayıklama, kod açıklama, optimizasyon — her şeyi sorabilirsiniz.</p>
+      <div class="suggestions">
+        <button class="sug-btn" onclick="fillInput('Python ile basit bir web scraper yaz')">🐍 Web Scraper</button>
+        <button class="sug-btn" onclick="fillInput('JavaScript async/await nasıl çalışır')">⚡ Async/Await</button>
+        <button class="sug-btn" onclick="fillInput('SQL JOIN türlerini açıkla')">🗄 SQL JOIN</button>
+        <button class="sug-btn" onclick="fillInput('React hooks nedir, örnek ver')">⚛ React Hooks</button>
+      </div>
+    </div>`;
+}
+
+// ===== TOKENS =====
+function estimateTokens(t) { return Math.ceil(t.length / 4); }
+function updateTokens() {
+  document.getElementById('token-badge').textContent = `~${totalTokens.toLocaleString()} token`;
+}
+
+// ===== EXPORT =====
+function exportChat() {
+  if (!messages.length) { showToast('⚠️ Dışa aktarılacak mesaj yok'); return; }
+  let md = '# WerNer Sohbet Geçmişi\n\n';
+  messages.forEach(m => {
+    md += `## ${m.role === 'user' ? '👤 Siz' : '🤖 WerNer'}\n\n${m.content}\n\n---\n\n`;
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([md], {type:'text/markdown'}));
+  a.download = `werner-${Date.now()}.md`;
+  a.click();
+  showToast('✅ Sohbet indirildi');
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== COPY =====
+function copyCode(btn) {
+  const pre = btn.closest('pre');
+  const code = pre.querySelector('code');
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    btn.textContent = '✓ kopyalandı';
+    setTimeout(() => btn.textContent = 'kopyala', 2000);
+  });
+}
+function copyMsg(btn) {
+  const txt = btn.closest('.msg').querySelector('.msg-content').innerText;
+  navigator.clipboard.writeText(txt);
+  showToast('✅ Kopyalandı');
+}
+
+// ===== MARKDOWN =====
+marked.setOptions({ breaks: true, gfm: true });
+function renderMarkdown(text) {
+  const html = marked.parse(text);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  tmp.querySelectorAll('pre').forEach(pre => {
+    const code = pre.querySelector('code');
+    const langClass = code ? [...code.classList].find(c => c.startsWith('language-')) : null;
+    const lang = langClass ? langClass.replace('language-', '') : 'kod';
+    const header = document.createElement('div');
+    header.className = 'code-header';
+    header.innerHTML = `<span class="code-lang">${lang}</span>
+      <div class="code-actions">
+        <button class="copy-code-btn" onclick="copyCode(this)">kopyala</button>
+      </div>`;
+    pre.insertBefore(header, pre.firstChild);
+    if (code) { try { hljs.highlightElement(code); } catch(e) {} }
+  });
+  return tmp.innerHTML;
+}
+
+// ===== RENDER MESSAGE =====
+function renderMessage(role, text) {
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+  const chat = document.getElementById('chat');
+  const now = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const avatar = role === 'user' ? '👤' : '🤖';
+  const label = role === 'user' ? 'siz' : 'werner';
+  const content = role === 'assistant'
+    ? renderMarkdown(text)
+    : `<p>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</p>`;
+  div.innerHTML = `
+    <div class="msg-avatar">${avatar}</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-label">${label}</span>
+        <span class="msg-time">${now}</span>
+        <div class="msg-actions">
+          <button class="msg-act-btn" onclick="copyMsg(this)">📋 kopyala</button>
+        </div>
+      </div>
+      <div class="msg-content">${content}</div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// ===== THINKING =====
+function showThinking(isThinking) {
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg assistant'; div.id = 'typing-msg';
+  const inner = isThinking
+    ? `<div class="thinking-wrap">
+        <div class="thinking-label">⚙ düşünüyor<span class="search-dots"></span></div>
+        <div class="thinking-bar"><div class="thinking-bar-inner"></div></div>
+       </div>`
+    : `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+  div.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-body">
+      <div class="msg-meta"><span class="msg-label">werner</span></div>
+      <div class="msg-content">${inner}</div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+function removeTyping() {
+  const t = document.getElementById('typing-msg');
+  if (t) t.remove();
+}
+
+// ===== SEND =====
+async function sendMessage() {
+  if (isLoading) return;
+  // On mobile, switch to chat tab
+  if (currentMobileTab !== 'chat') switchMobileTab('chat');
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+  isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+
+  let userContent;
+  if (selectedImageData) {
+    userContent = [
+      { type: 'image_url', image_url: { url: `data:${selectedImageMime};base64,${selectedImageData}` } },
+      { type: 'text', text: text || 'Bu görseli açıkla' }
+    ];
+    clearImage();
+  } else {
+    userContent = text;
+  }
+  messages.push({ role: 'user', content: userContent });
+  totalTokens += estimateTokens(text);
+  updateTokens();
+  renderMessage('user', text);
+
+  const isThinkingModel = selectedModel.includes('thinking');
+  showThinking(isThinkingModel);
+
+  // Build system prompt with language context
+  const langContext = selectedLang !== 'Genel' ? ` Kullanıcı şu anda ${selectedLang} dilinde çalışıyor.` : '';
+
+  try {
+    const res = await fetch('http://127.0.0.1:8045/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        max_tokens: 8192,
+        messages: messages,
+        tools: [{ googleSearch: {} }]
+      })
+    });
+
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch(e) { throw new Error('Yanıt parse edilemedi: ' + raw.slice(0,150)); }
+
+    removeTyping();
+
+    if (data.error) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'error-bubble';
+      errDiv.textContent = 'Hata: ' + JSON.stringify(data.error);
+      document.getElementById('chat').appendChild(errDiv);
+    } else {
+      const reply = data.choices[0].message.content;
+      messages.push({ role: 'assistant', content: reply });
+      totalTokens += data.usage?.total_tokens || estimateTokens(reply);
+      updateTokens();
+      renderMessage('assistant', reply);
+    }
+  } catch(err) {
+    removeTyping();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'error-bubble';
+    errDiv.textContent = 'Bağlantı hatası: ' + err.message;
+    document.getElementById('chat').appendChild(errDiv);
+  }
+
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('user-input').focus();
+}
+
+// ===== KEYBOARD HANDLING FOR MOBILE =====
+// When keyboard opens, scroll chat to bottom
+if ('visualViewport' in window) {
+  window.visualViewport.addEventListener('resize', () => {
+    if (currentMobileTab === 'chat') {
+      const chat = document.getElementById('chat');
+      setTimeout(() => chat.scrollTop = chat.scrollHeight, 100);
+    }
+  });
+}
+</script>
+</body>
+</html>
