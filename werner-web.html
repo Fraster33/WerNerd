@@ -7,11 +7,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0f">
-<title>WerNer — Kod Yardımcısı</title>
+<title>WerNer — Yapay Zeka Asistanı</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
 :root {
   --bg: #0a0a0f;
@@ -28,6 +31,10 @@
   --yellow: #f59e0b;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
+}
+[data-theme="yellow"] {
+  --accent: #ffd60a;
+  --accent-dim: rgba(255,214,10,0.1);
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html { height:100%; height: -webkit-fill-available; }
@@ -189,6 +196,28 @@ header {
 .quick-btn .qi { font-size:0.9rem; flex-shrink:0; }
 .sidebar-divider { height:1px; background:var(--border); margin:5px 0; }
 
+/* ===== THEME SWITCH ===== */
+.theme-switch-row {
+  display:flex; align-items:center; justify-content:space-between; gap:6px;
+  padding:6px 2px 10px;
+}
+.theme-switch-label { font-size:0.72rem; color:var(--muted); white-space:nowrap; }
+.theme-switch {
+  position:relative; display:inline-block; width:40px; height:22px; flex-shrink:0;
+}
+.theme-switch input { opacity:0; width:0; height:0; }
+.theme-switch-slider {
+  position:absolute; cursor:pointer; inset:0;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:22px; transition:background 0.2s, border-color 0.2s;
+}
+.theme-switch-slider::before {
+  content:''; position:absolute; height:14px; width:14px; left:3px; bottom:3px;
+  background:var(--accent); border-radius:50%; transition:transform 0.2s;
+}
+.theme-switch input:checked + .theme-switch-slider { border-color:var(--accent); }
+.theme-switch input:checked + .theme-switch-slider::before { transform:translateX(18px); }
+
 /* ===== MAIN ===== */
 .main { flex:1; display:flex; flex-direction:column; min-height:0; min-width:0; }
 
@@ -314,6 +343,15 @@ header {
   font-family:'JetBrains Mono',monospace; transition:all 0.15s;
 }
 .copy-code-btn:hover,.copy-code-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+
+/* ===== MATH (KaTeX) ===== */
+.katex-math-block {
+  display:block; margin:12px 0; padding:10px 4px;
+  overflow-x:auto; overflow-y:hidden; text-align:center;
+}
+.katex-math-inline { padding:0 1px; }
+.msg-content .katex { color:var(--text); font-size:1.05em; }
+.msg-content .katex-display { margin:0; }
 .msg-content pre code {
   display:block; padding:12px 14px; overflow-x:auto;
   font-family:'JetBrains Mono',monospace; font-size:0.78rem; line-height:1.65;
@@ -568,19 +606,15 @@ header {
     <!-- DESKTOP SIDEBAR -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-inner">
-        <div class="sidebar-title">Hızlı Başlat</div>
-        <button class="quick-btn" onclick="fillInput('Bu kodu açıkla ve yorum satırları ekle:')"><span class="qi">💬</span>Kodu Açıkla</button>
-        <button class="quick-btn" onclick="fillInput('Bu koddaki hataları bul ve düzelt:')"><span class="qi">🐛</span>Hata Düzelt</button>
-        <button class="quick-btn" onclick="fillInput('Bu kodu optimize et, daha hızlı ve temiz yap:')"><span class="qi">⚡</span>Optimize Et</button>
-        <button class="quick-btn" onclick="fillInput('Bu kod için unit testler yaz:')"><span class="qi">🧪</span>Test Yaz</button>
-        <button class="quick-btn" onclick="fillInput('Bu kodu daha okunabilir hale getir (refactor):')"><span class="qi">♻️</span>Refactor</button>
-        <button class="quick-btn" onclick="fillInput('Bu fonksiyon için dokümantasyon yaz:')"><span class="qi">📝</span>Dökümantasyon</button>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-title">Dil Modu</div>
-        <button class="quick-btn" onclick="setLangDirect('Python')"><span class="qi">🐍</span>Python</button>
-        <button class="quick-btn" onclick="setLangDirect('JavaScript')"><span class="qi">⚡</span>JavaScript</button>
-        <button class="quick-btn" onclick="setLangDirect('React')"><span class="qi">⚛</span>React</button>
-        <button class="quick-btn" onclick="setLangDirect('SQL')"><span class="qi">🗄</span>SQL</button>
+        <div class="sidebar-title">Tema</div>
+        <div class="theme-switch-row">
+          <span class="theme-switch-label">🟢 Yeşil</span>
+          <label class="theme-switch">
+            <input type="checkbox" id="theme-toggle" onchange="setTheme(this.checked ? 'yellow' : 'green')">
+            <span class="theme-switch-slider"></span>
+          </label>
+          <span class="theme-switch-label">🟡 Sarı</span>
+        </div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-title">Araçlar</div>
         <button class="quick-btn" onclick="clearChat()"><span class="qi">🗑</span>Sohbeti Temizle</button>
@@ -590,56 +624,32 @@ header {
 
     <!-- MAIN -->
     <div class="main">
-      <!-- DESKTOP TOOLBAR -->
-      <div class="toolbar" id="main-toolbar">
-        <button class="lang-pill active" onclick="setLang(this,'Genel')">Genel</button>
-        <button class="lang-pill" onclick="setLang(this,'Python')">🐍 Python</button>
-        <button class="lang-pill" onclick="setLang(this,'JavaScript')">⚡ JS</button>
-        <button class="lang-pill" onclick="setLang(this,'TypeScript')">🔷 TS</button>
-        <button class="lang-pill" onclick="setLang(this,'HTML/CSS')">🎨 HTML/CSS</button>
-        <button class="lang-pill" onclick="setLang(this,'React')">⚛ React</button>
-        <button class="lang-pill" onclick="setLang(this,'SQL')">🗄 SQL</button>
-        <button class="lang-pill" onclick="setLang(this,'C++')">⚙ C++</button>
-        <button class="lang-pill" onclick="setLang(this,'Rust')">🦀 Rust</button>
-        <button class="lang-pill" onclick="setLang(this,'Go')">🐹 Go</button>
-      </div>
-
       <!-- CHAT -->
       <div id="chat">
         <div class="empty-state" id="empty-state">
-          <div class="empty-glyph">{ }</div>
-          <h3>Ne kodlamak istiyorsunuz?</h3>
-          <p>Hata ayıklama, kod açıklama, optimizasyon — her şeyi sorabilirsiniz.</p>
+          <div class="empty-glyph">✦</div>
+          <h3>Nasıl yardımcı olabilirim?</h3>
+          <p>Soru sorun, bir problemi çözün, kod yazın ya da sohbet edin — her şeyi sorabilirsiniz.</p>
           <div class="suggestions">
-            <button class="sug-btn" onclick="fillInput('Python ile basit bir web scraper yaz')">🐍 Web Scraper</button>
-            <button class="sug-btn" onclick="fillInput('JavaScript async/await nasıl çalışır')">⚡ Async/Await</button>
-            <button class="sug-btn" onclick="fillInput('SQL JOIN türlerini açıkla')">🗄 SQL JOIN</button>
-            <button class="sug-btn" onclick="fillInput('React hooks nedir, örnek ver')">⚛ React Hooks</button>
+            <button class="sug-btn" onclick="fillInput('Bir matematik problemini adım adım çöz:')">📐 Matematik Çöz</button>
+            <button class="sug-btn" onclick="fillInput('Bu konuyu bana basitçe anlat:')">💡 Bir Konu Anlat</button>
+            <button class="sug-btn" onclick="fillInput('Şunu benim için özetle:')">📄 Özet Çıkar</button>
+            <button class="sug-btn" onclick="fillInput('Bu kodu açıkla:')">💬 Kodu Açıkla</button>
           </div>
         </div>
       </div>
 
       <!-- MOBILE PANELS -->
       <div class="mobile-panel" id="panel-shortcuts">
-        <div class="panel-header">⚡ Hızlı Başlat</div>
+        <div class="panel-header">🎨 Tema</div>
         <div class="panel-content">
-          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kodu açıkla ve yorum satırları ekle:')"><span class="qi">💬</span>Kodu Açıkla</button>
-          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu koddaki hataları bul ve düzelt:')"><span class="qi">🐛</span>Hata Düzelt</button>
-          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kodu optimize et, daha hızlı ve temiz yap:')"><span class="qi">⚡</span>Optimize Et</button>
-          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kod için unit testler yaz:')"><span class="qi">🧪</span>Test Yaz</button>
-          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu kodu daha okunabilir hale getir (refactor):')"><span class="qi">♻️</span>Refactor</button>
-          <button class="quick-btn" style="background:var(--surface2);border-color:var(--border);" onclick="fillAndSwitch('Bu fonksiyon için dokümantasyon yaz:')"><span class="qi">📝</span>Dökümantasyon</button>
-          <div class="sidebar-divider" style="margin:8px 0;"></div>
-          <div class="sidebar-title">Dil Modu: <span id="mobile-current-lang" style="color:var(--accent)">Genel</span></div>
-          <div class="lang-grid">
-            <div class="lang-card selected" id="lc-Genel" onclick="setLangMobile(this,'Genel')"><span class="lang-card-emoji">🌐</span>Genel</div>
-            <div class="lang-card" id="lc-Python" onclick="setLangMobile(this,'Python')"><span class="lang-card-emoji">🐍</span>Python</div>
-            <div class="lang-card" id="lc-JavaScript" onclick="setLangMobile(this,'JavaScript')"><span class="lang-card-emoji">⚡</span>JavaScript</div>
-            <div class="lang-card" id="lc-TypeScript" onclick="setLangMobile(this,'TypeScript')"><span class="lang-card-emoji">🔷</span>TypeScript</div>
-            <div class="lang-card" id="lc-HTMLCSS" onclick="setLangMobile(this,'HTML/CSS')"><span class="lang-card-emoji">🎨</span>HTML/CSS</div>
-            <div class="lang-card" id="lc-React" onclick="setLangMobile(this,'React')"><span class="lang-card-emoji">⚛</span>React</div>
-            <div class="lang-card" id="lc-SQL" onclick="setLangMobile(this,'SQL')"><span class="lang-card-emoji">🗄</span>SQL</div>
-            <div class="lang-card" id="lc-Rust" onclick="setLangMobile(this,'Rust')"><span class="lang-card-emoji">🦀</span>Rust</div>
+          <div class="theme-switch-row">
+            <span class="theme-switch-label">🟢 Yeşil</span>
+            <label class="theme-switch">
+              <input type="checkbox" id="theme-toggle-mobile" onchange="setTheme(this.checked ? 'yellow' : 'green')">
+              <span class="theme-switch-slider"></span>
+            </label>
+            <span class="theme-switch-label">🟡 Sarı</span>
           </div>
         </div>
       </div>
@@ -717,7 +727,7 @@ header {
       <span class="nav-icon">💬</span>Sohbet
     </button>
     <button class="mobile-nav-btn" id="nav-shortcuts" onclick="switchMobileTab('shortcuts')">
-      <span class="nav-icon">⚡</span>Araçlar
+      <span class="nav-icon">🎨</span>Tema
     </button>
     <button class="mobile-nav-btn" id="nav-models" onclick="switchMobileTab('models')">
       <span class="nav-icon">🤖</span>Model
@@ -834,7 +844,27 @@ window.addEventListener('load', () => {
   document.getElementById('base-url-input').value = baseUrl;
   document.getElementById('api-key-input').value = apiKey;
   connect();
+  initTheme();
 });
+
+// ===== TEMA (Yeşil / Sarı) =====
+function setTheme(theme) {
+  if (theme === 'yellow') {
+    document.documentElement.setAttribute('data-theme', 'yellow');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  localStorage.setItem('werner_theme', theme);
+  const checked = theme === 'yellow';
+  const t1 = document.getElementById('theme-toggle');
+  const t2 = document.getElementById('theme-toggle-mobile');
+  if (t1) t1.checked = checked;
+  if (t2) t2.checked = checked;
+}
+function initTheme() {
+  const saved = localStorage.getItem('werner_theme') || 'green';
+  setTheme(saved);
+}
 
 function updateBaseUrl(val) {
   baseUrl = val.trim().replace(/\/+$/,'');
@@ -974,14 +1004,14 @@ function clearChat() {
   messages = []; totalTokens = 0; updateTokens();
   document.getElementById('chat').innerHTML = `
     <div class="empty-state" id="empty-state">
-      <div class="empty-glyph">{ }</div>
-      <h3>Ne kodlamak istiyorsunuz?</h3>
-      <p>Hata ayıklama, kod açıklama, optimizasyon — her şeyi sorabilirsiniz.</p>
+      <div class="empty-glyph">✦</div>
+      <h3>Nasıl yardımcı olabilirim?</h3>
+      <p>Soru sorun, bir problemi çözün, kod yazın ya da sohbet edin — her şeyi sorabilirsiniz.</p>
       <div class="suggestions">
-        <button class="sug-btn" onclick="fillInput('Python ile basit bir web scraper yaz')">🐍 Web Scraper</button>
-        <button class="sug-btn" onclick="fillInput('JavaScript async/await nasıl çalışır')">⚡ Async/Await</button>
-        <button class="sug-btn" onclick="fillInput('SQL JOIN türlerini açıkla')">🗄 SQL JOIN</button>
-        <button class="sug-btn" onclick="fillInput('React hooks nedir, örnek ver')">⚛ React Hooks</button>
+        <button class="sug-btn" onclick="fillInput('Bir matematik problemini adım adım çöz:')">📐 Matematik Çöz</button>
+        <button class="sug-btn" onclick="fillInput('Bu konuyu bana basitçe anlat:')">💡 Bir Konu Anlat</button>
+        <button class="sug-btn" onclick="fillInput('Şunu benim için özetle:')">📄 Özet Çıkar</button>
+        <button class="sug-btn" onclick="fillInput('Bu kodu açıkla:')">💬 Kodu Açıkla</button>
       </div>
     </div>`;
 }
@@ -1032,10 +1062,41 @@ function copyMsg(btn) {
 
 // ===== MARKDOWN =====
 marked.setOptions({ breaks: true, gfm: true });
+
+// LaTeX ifadelerini ($$...$$ ve $...$) markdown parser'a girmeden önce
+// koruma altına alıyoruz, aksi halde marked içindeki alt çizgi (_), yıldız (*)
+// gibi karakterleri italik/kalın olarak yorumlayıp formülleri bozuyor.
+function protectMath(text) {
+  const blocks = [];
+  let out = text.replace(/\$\$([\s\S]+?)\$\$/g, (m, expr) => {
+    blocks.push({ display: true, expr });
+    return `@@MATHBLOCK${blocks.length - 1}@@`;
+  });
+  out = out.replace(/\$([^\$\n]+?)\$/g, (m, expr) => {
+    blocks.push({ display: false, expr });
+    return `@@MATHBLOCK${blocks.length - 1}@@`;
+  });
+  return { text: out, blocks };
+}
+
 function renderMarkdown(text) {
-  const html = marked.parse(text);
+  const { text: protectedText, blocks } = protectMath(text);
+  const html = marked.parse(protectedText);
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
+
+  // Placeholder'ları orijinal LaTeX kaynağıyla (ham metin olarak) geri koy.
+  if (blocks.length) {
+    tmp.innerHTML = tmp.innerHTML.replace(/@@MATHBLOCK(\d+)@@/g, (m, idx) => {
+      const b = blocks[idx];
+      if (!b) return m;
+      const escaped = b.expr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return b.display
+        ? `<span class="katex-math-block">$$${escaped}$$</span>`
+        : `<span class="katex-math-inline">$${escaped}$</span>`;
+    });
+  }
+
   tmp.querySelectorAll('pre').forEach(pre => {
     const code = pre.querySelector('code');
     const langClass = code ? [...code.classList].find(c => c.startsWith('language-')) : null;
@@ -1047,6 +1108,20 @@ function renderMarkdown(text) {
     pre.insertBefore(header, pre.firstChild);
     if (code) { try { hljs.highlightElement(code); } catch(e) {} }
   });
+
+  // KaTeX ile matematiği gerçek formül olarak render et.
+  if (blocks.length && window.renderMathInElement) {
+    try {
+      renderMathInElement(tmp, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false
+      });
+    } catch (e) {}
+  }
+
   return tmp.innerHTML;
 }
 
@@ -1162,7 +1237,7 @@ async function sendMessage() {
         max_tokens: 8192,
         stream: true,
         messages: [
-          { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
+          { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor. Matematiksel işlem, formül, denklem ya da ifade yazarken MUTLAKA LaTeX sözdizimi kullan: satır içi ifadeler için tek dolar işareti ($...$), ayrı bir satırda gösterilecek denklemler için çift dolar işareti ($$...$$) ile çevrele. Üslü ifadeler için ^{...}, kesirler için \\frac{}{}, alt indis için _{...} kullan. Asla LaTeX komutlarını (\\cdot, \\ge, \\frac vb.) dolar işareti olmadan düz metin gibi yazma; arayüz bu ifadeleri yalnızca $ / $$ ile çevrelendiğinde düzgün render ediyor.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
           ...messages
         ]
       }),
