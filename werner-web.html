@@ -1248,8 +1248,65 @@ async function sendMessage() {
         model: selectedModel,
         max_tokens: 8192,
         stream: true,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "web_search",
+              description: "Web'de arama yapıp güncel bilgiler bul. Sorular, haberler, araştırma konuları için kullan.",
+              parameters: {
+                type: "object",
+                properties: {
+                  query: {
+                    type: "string",
+                    description: "Web'de aranacak arama sorgusu"
+                  }
+                },
+                required: ["query"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "read_url",
+              description: "Verilen URL'deki web sayfasını oku ve içeriğini çıkar. Makaleler, bloglar, belge sayfaları okumak için kullan.",
+              parameters: {
+                type: "object",
+                properties: {
+                  url: {
+                    type: "string",
+                    description: "Okunacak web sayfasının URL'i"
+                  }
+                },
+                required: ["url"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "analyze_image",
+              description: "Verilen görsel URL'sini analiz et ve görsel hakkında detaylı bilgi sağla. Fotoğraflar, diyagramlar, ekran görüntüleri analiz etmek için kullan.",
+              parameters: {
+                type: "object",
+                properties: {
+                  image_url: {
+                    type: "string",
+                    description: "Analiz edilecek görselin URL'i"
+                  },
+                  question: {
+                    type: "string",
+                    description: "Görsel hakkında sorulan soru (isteğe bağlı)"
+                  }
+                },
+                required: ["image_url"]
+              }
+            }
+          }
+        ],
         messages: [
-          { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor. Matematiksel işlem, formül, denklem ya da ifade yazarken MUTLAKA LaTeX sözdizimi kullan: satır içi ifadeler için tek dolar işareti ($...$), ayrı bir satırda gösterilecek denklemler için çift dolar işareti ($$...$$) ile çevrele. Üslü ifadeler için ^{...}, kesirler için \\frac{}{}, alt indis için _{...} kullan. Asla LaTeX komutlarını (\\cdot, \\ge, \\frac vb.) dolar işareti olmadan düz metin gibi yazma; arayüz bu ifadeleri yalnızca $ / $$ ile çevrelendiğinde düzgün render ediyor.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
+          { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor. Matematiksel işlem, formül, denklem ya da ifade yazarken MUTLAKA LaTeX sözdizimi kullan: satır içi ifadeler için tek dolar işareti ($...$), ayrı bir satırda gösterilecek denklemler için çift dolar işareti ($$...$$) ile çevrele. Üslü ifadeler için ^{...}, kesirler için \\frac{}{}, alt indis için _{...} kullan. Asla LaTeX komutlarını (\\cdot, \\ge, \\frac vb.) dolar işareti olmadan düz metin gibi yazma; arayüz bu ifadeleri yalnızca $ / $$ ile çevrelendiğinde düzgün render ediyor. Sen web araması yapabilir, web sayfalarını okuyabilir ve görselleri analiz edebilirsin. Kullanıcı sorarsa bu yeteneklerini kullan.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
           ...messages
         ]
       }),
