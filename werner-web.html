@@ -381,6 +381,12 @@ header {
 @keyframes thinking-scan { 0% { transform:translateX(-100%); } 100% { transform:translateX(280%); } }
 .search-dots::after { content:''; animation:dots 1.5s steps(3,end) infinite; }
 @keyframes dots { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
+.research-wrap { padding:6px 0; }
+.research-label { font-size:0.68rem; color:var(--purple); font-family:'JetBrains Mono',monospace; display:inline-flex; align-items:center; gap:6px; font-weight:500; letter-spacing:0.04em; opacity:0.85; animation:research-pulse 1.4s ease-in-out infinite; }
+@keyframes research-pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+.research-dots { display:inline-flex; gap:2px; margin-left:2px; }
+.research-dots::after { content:''; animation:research-dots 1.4s steps(3,end) infinite; display:inline-block; }
+@keyframes research-dots { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
 
 /* ===== INPUT AREA ===== */
 .input-wrap {
@@ -1156,7 +1162,7 @@ function renderMessage(role, text, streaming = false) {
   return div.querySelector('.msg-content');
 }
 
-// ===== THINKING =====
+// ===== THINKING & RESEARCH =====
 function showThinking(isThinking) {
   const empty = document.getElementById('empty-state');
   if (empty) empty.remove();
@@ -1167,8 +1173,14 @@ function showThinking(isThinking) {
     ? `<div class="thinking-wrap">
         <div class="thinking-label">⚙ düşünüyor<span class="search-dots"></span></div>
         <div class="thinking-bar"><div class="thinking-bar-inner"></div></div>
+       </div>
+       <div class="research-wrap">
+        <div class="research-label">🔍 araştırılıyor<span class="research-dots"></span></div>
        </div>`
-    : `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+    : `<div class="typing-dots"><span></span><span></span><span></span></div>
+       <div class="research-wrap" style="margin-top: 4px;">
+        <div class="research-label">🔍 araştırılıyor<span class="research-dots"></span></div>
+       </div>`;
   div.innerHTML = `
     <div class="msg-avatar">🤖</div>
     <div class="msg-body">
