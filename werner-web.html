@@ -15,12 +15,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-  import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, updateDoc, doc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+<!-- Firebase SDK CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
+<script>
   // Firebase Configuration
   const firebaseConfig = {
     apiKey: "AIzaSyAtPKO8XS1bVu0gGMC4fNqw0Mr5bVweZaE",
@@ -32,14 +32,10 @@
     measurementId: "G-6MP5FZ03Y8"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  window.firebaseApp = app;
-  window.firebaseAuth = auth;
-  window.firebaseDb = db;
-  window.firebaseUtils = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, collection, addDoc, query, where, orderBy, onSnapshot, updateDoc, doc, deleteDoc, getDocs };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  window.firebaseAuth = firebase.auth();
+  window.firebaseDb = firebase.firestore();
 </script>
 <style>
 :root {
@@ -210,6 +206,14 @@ header {
   overflow-y: auto;
 }
 #login-screen.visible { display:flex; }
+
+/* ===== REGISTER SCREEN ===== */
+#register-screen {
+  position:relative; z-index:10; flex:1;
+  display:none; align-items:center; justify-content:center; padding:24px 20px;
+  overflow-y: auto;
+}
+#register-screen.visible { display:flex; }
 .login-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:20px; padding:48px 40px; max-width:380px; width:100%; text-align:center;
@@ -689,7 +693,40 @@ header {
   </div>
 </div>
 
-<!-- SETUP SCREEN -->
+<!-- REGISTER SCREEN -->
+<div id="register-screen">
+  <div class="login-card">
+    <h1>Yeni Hesap</h1>
+    <p>WerNer'e Katıl</p>
+    
+    <form class="login-form" onsubmit="handleRegister(event)">
+      <div class="login-input-group">
+        <label for="reg-email">E-posta</label>
+        <input type="email" id="reg-email" class="login-input" placeholder="örnek@gmail.com" required autocomplete="email" />
+      </div>
+      
+      <div class="login-input-group">
+        <label for="reg-password">Şifre</label>
+        <input type="password" id="reg-password" class="login-input" placeholder="En az 6 karakter" required autocomplete="new-password" />
+      </div>
+      
+      <div class="login-input-group">
+        <label for="reg-password2">Şifre Tekrar</label>
+        <input type="password" id="reg-password2" class="login-input" placeholder="Şifrenizi tekrar girin" required autocomplete="new-password" />
+      </div>
+      
+      <button type="submit" class="btn-login">Hesap Oluştur →</button>
+    </form>
+    
+    <div class="login-divider">veya</div>
+    
+    <button class="btn-login" style="background:linear-gradient(135deg, #a78bfa, #c084fc); box-shadow:0 4px 15px rgba(167,139,250,0.2);" onclick="goToLogin()">Giriş Yap</button>
+    
+    <div class="login-note">
+      🔒 Şifreleriniz encrypted olarak Firebase'de tutulur.
+    </div>
+  </div>
+</div>
 <div id="setup-screen">
   <div class="setup-card">
     <span class="setup-icon">⌨️</span>
@@ -900,10 +937,8 @@ async function handleLogin(e) {
   try {
     showToast('🔄 Giriş yapılıyor...');
     const auth = window.firebaseAuth;
-    const { signInWithEmailAndPassword } = window.firebaseUtils;
     
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    await auth.signInWithEmailAndPassword(email, password);
     
     localStorage.setItem('werner-logged-in', 'true');
     localStorage.setItem('werner-user', email);
@@ -932,31 +967,46 @@ async function handleLogin(e) {
 }
 
 function showRegisterForm() {
-  const email = prompt('E-posta adresinizi girin:');
-  if (!email) return;
+  document.getElementById('login-screen').classList.remove('visible');
+  document.getElementById('register-screen').classList.add('visible');
+}
+
+function goToLogin() {
+  document.getElementById('register-screen').classList.remove('visible');
+  document.getElementById('login-screen').classList.add('visible');
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const password2 = document.getElementById('reg-password2').value;
   
-  const password = prompt('Şifre oluşturun (en az 6 karakter):');
-  if (!password || password.length < 6) {
+  if (!email || !password || !password2) {
+    showToast('⚠️ Lütfen tüm alanları doldurun!');
+    return;
+  }
+  
+  if (password.length < 6) {
     showToast('⚠️ Şifre en az 6 karakter olmalı!');
     return;
   }
   
-  handleRegister(email, password);
-}
-
-async function handleRegister(email, password) {
+  if (password !== password2) {
+    showToast('⚠️ Şifreler uyuşmamaktadır!');
+    return;
+  }
+  
   try {
     showToast('🔄 Hesap oluşturuluyor...');
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
-    const { createUserWithEmailAndPassword, addDoc, collection } = window.firebaseUtils;
     
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const user = userCredential.user;
     
     // Kullanıcı bilgilerini Firestore'a kaydet
-    await addDoc(collection(db, 'users'), {
-      uid: user.uid,
+    await db.collection('users').doc(user.uid).set({
       email: email,
       createdAt: new Date(),
       settings: {
@@ -967,14 +1017,21 @@ async function handleRegister(email, password) {
     });
     
     showToast('✅ Hesap oluşturuldu! Giriş yapabilirsiniz.');
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = password;
+    setTimeout(() => {
+      document.getElementById('register-screen').classList.remove('visible');
+      document.getElementById('login-screen').classList.add('visible');
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = password;
+      document.getElementById('reg-email').value = '';
+      document.getElementById('reg-password').value = '';
+      document.getElementById('reg-password2').value = '';
+    }, 800);
   } catch (error) {
     console.error('Register hatası:', error);
     if (error.code === 'auth/email-already-in-use') {
       showToast('❌ Bu e-posta zaten kullanılıyor');
     } else if (error.code === 'auth/weak-password') {
-      showToast('❌ Şifre çok zayıf');
+      showToast('❌ Şifre çok zayıf (en az 6 karakter)');
     } else {
       showToast('❌ Kayıt başarısız: ' + error.message);
     }
@@ -989,9 +1046,7 @@ async function logout() {
     }
     
     const auth = window.firebaseAuth;
-    const { signOut } = window.firebaseUtils;
-    
-    await signOut(auth);
+    await auth.signOut();
     
     localStorage.removeItem('werner-logged-in');
     localStorage.removeItem('werner-user');
@@ -1016,12 +1071,11 @@ async function saveChatsToFirebase() {
   try {
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
-    const { addDoc, collection } = window.firebaseUtils;
     
     const user = auth.currentUser;
     if (!user) return;
     
-    await addDoc(collection(db, 'users', user.uid, 'chats'), {
+    await db.collection('users').doc(user.uid).collection('chats').add({
       messages: messages,
       totalTokens: totalTokens,
       selectedModel: selectedModel,
@@ -1044,8 +1098,7 @@ async function loadUserSettings() {
     
     if (!user) return;
     
-    // Kullanıcının en son sohbetini yükle
-    // Bunu daha sonra uygulamayı tercih edebilirsiniz
+    // Kullanıcının profil bilgilerini yükle
     console.log('✓ Kullanıcı ayarları yüklendi');
   } catch (error) {
     console.error('Ayarları yükleme hatası:', error);
@@ -1139,6 +1192,9 @@ function connect() {
 // Restore session & check login
 window.addEventListener('load', () => {
   initTheme();
+  
+  // Register screen'i gizle
+  document.getElementById('register-screen').classList.remove('visible');
   
   // Firebase auth state listener
   const auth = window.firebaseAuth;
