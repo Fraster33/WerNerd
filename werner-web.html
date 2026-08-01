@@ -15,6 +15,32 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+  import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, updateDoc, doc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+  // Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAtPKO8XS1bVu0gGMC4fNqw0Mr5bVweZaE",
+    authDomain: "werner-chat-12ae9.firebaseapp.com",
+    projectId: "werner-chat-12ae9",
+    storageBucket: "werner-chat-12ae9.firebasestorage.app",
+    messagingSenderId: "264454655012",
+    appId: "1:264454655012:web:c7093a4a46fb258cd75cb1",
+    measurementId: "G-6MP5FZ03Y8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.firebaseApp = app;
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.firebaseUtils = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, collection, addDoc, query, where, orderBy, onSnapshot, updateDoc, doc, deleteDoc, getDocs };
+</script>
 <style>
 :root {
   --bg: #0a0a0f;
@@ -115,9 +141,10 @@ header {
 /* ===== SETUP SCREEN ===== */
 #setup-screen {
   position:relative; z-index:10; flex:1;
-  display:flex; align-items:center; justify-content:center; padding:24px 20px;
+  display:none; align-items:center; justify-content:center; padding:24px 20px;
   overflow-y: auto;
 }
+#setup-screen.visible { display:flex; }
 .setup-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:20px; padding:36px 32px; max-width:440px; width:100%; text-align:center;
@@ -163,11 +190,62 @@ header {
   margin-top:14px; background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.18);
   border-radius:8px; padding:10px 12px; font-size:0.72rem; color:var(--yellow); text-align:left; line-height:1.55;
 }
+.setup-cloudflare {
+  margin-top:14px; background:rgba(0,163,230,0.08); border:1px solid rgba(0,163,230,0.25);
+  border-radius:8px; padding:12px; font-size:0.68rem; color:#64b5f6; text-align:left; line-height:1.6; font-family:'JetBrains Mono',monospace;
+}
+.setup-cloudflare strong { color:#42a5f5; }
 .setup-divider {
   display:flex; align-items:center; gap:10px; margin:14px 0;
   font-size:0.67rem; color:var(--muted); font-family:'JetBrains Mono',monospace;
 }
 .setup-divider::before,.setup-divider::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+/* ===== LOGIN SCREEN ===== */
+#login-screen {
+  position:relative; z-index:10; flex:1;
+  display:none; align-items:center; justify-content:center; padding:24px 20px;
+  overflow-y: auto;
+}
+#login-screen.visible { display:flex; }
+.login-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:48px 40px; max-width:380px; width:100%; text-align:center;
+  animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.login-card h1 { font-size:2rem; font-weight:800; margin-bottom:8px; background:linear-gradient(135deg, var(--accent), #8ef9f3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.login-card p { color:var(--muted); font-size:0.9rem; margin-bottom:32px; line-height:1.6; }
+.login-form { display:flex; flex-direction:column; gap:16px; }
+.login-input-group { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.login-input-group label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace; font-weight:600; }
+.login-input {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:14px 16px; color:var(--text);
+  font-family:'JetBrains Mono',monospace; font-size:0.9rem; outline:none; transition:all 0.2s;
+  -webkit-appearance:none;
+}
+.login-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,0.1); background:var(--surface3); }
+.login-input::placeholder { color:var(--muted); opacity:0.6; }
+.btn-login {
+  width:100%; background:linear-gradient(135deg, var(--accent), #8ef9f3); color:#000; border:none; border-radius:10px;
+  padding:14px 16px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s; letter-spacing:0.02em; margin-top:8px;
+  box-shadow: 0 4px 15px rgba(0,255,136,0.2);
+}
+.btn-login:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,255,136,0.3); }
+.btn-login:active { opacity:0.85; transform:scale(0.98); }
+.login-note {
+  margin-top:20px; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.2);
+  border-radius:8px; padding:12px; font-size:0.75rem; color:var(--purple); text-align:center; line-height:1.5;
+}
+.login-divider {
+  display:flex; align-items:center; gap:10px; margin:20px 0;
+  font-size:0.68rem; color:var(--muted); font-family:'JetBrains Mono',monospace;
+}
+.login-divider::before,.login-divider::after {
   content:''; flex:1; height:1px; background:var(--border);
 }
 
@@ -568,6 +646,9 @@ header {
 <!-- HEADER -->
 <header>
   <div class="logo">Wer<span>Ner</span></div>
+  <div style="font-size:0.75rem; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-left:16px; border-left:1px solid var(--border); padding-left:16px;">
+    <span id="header-username">-</span>
+  </div>
   <select class="model-select" id="model-select"></select>
   <div class="header-right">
     <span class="token-badge" id="token-badge">~0 token</span>
@@ -577,6 +658,36 @@ header {
     <span class="status-dot" id="status-dot"></span>
   </div>
 </header>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>WerNer</h1>
+    <p>Yapay Zeka Asistanına Hoş Geldiniz</p>
+    
+    <form class="login-form" onsubmit="handleLogin(event)">
+      <div class="login-input-group">
+        <label for="email">E-posta</label>
+        <input type="email" id="email" class="login-input" placeholder="örnek@gmail.com" required autocomplete="email" />
+      </div>
+      
+      <div class="login-input-group">
+        <label for="password">Şifre</label>
+        <input type="password" id="password" class="login-input" placeholder="Şifrenizi girin" required autocomplete="current-password" />
+      </div>
+      
+      <button type="submit" class="btn-login">Giriş Yap →</button>
+    </form>
+    
+    <div class="login-divider">veya</div>
+    
+    <button class="btn-login" style="background:linear-gradient(135deg, #00ff88, #8ef9f3); box-shadow:0 4px 15px rgba(0,255,136,0.2);" onclick="showRegisterForm()">Yeni Hesap Oluştur</button>
+    
+    <div class="login-note">
+      💡 Firebase ile güvenli oturum açın. Verileriniz buluta kaydedilir.
+    </div>
+  </div>
+</div>
 
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
@@ -588,8 +699,8 @@ header {
     <div class="field-label">Cloudflare Tunnel URL</div>
     <div class="url-wrap">
       <input type="url" id="base-url-input"
-        placeholder="https://batboy-activator-buggy.ngrok-free.dev"
-        value="https://batboy-activator-buggy.ngrok-free.dev"
+        placeholder="https://myservice.trycloudflare.com"
+        value="https://philip-authorization-seattle-archived.trycloudflare.com"
         autocomplete="off"
         onkeydown="if(event.key==='Enter')connect()" />
     </div>
@@ -603,6 +714,13 @@ header {
 
     <button class="btn-primary" onclick="connect()">Bağlan →</button>
     <div class="setup-note">🔒 Key ve URL yalnızca bu sekmenin belleğinde tutulur, hiçbir yere gönderilmez.</div>
+    <div class="setup-cloudflare">
+      <strong>🌐 Cloudflare Tunnel Kurulumu:</strong><br><br>
+      <strong>1.</strong> cloudflared.exe'yi <strong>cloudflare.com/en-gb/products/tunnel</strong>'dan indir<br>
+      <strong>2.</strong> Terminalinde: <code style="background:rgba(0,0,0,0.3);padding:3px 6px;border-radius:4px;">cloudflared tunnel --url http://localhost:8000</code><br>
+      <strong>3.</strong> Çıktıdaki <strong>trycloudflare.com</strong> URL'sini yukarıya yapıştır<br><br>
+      ✨ Ngrok'tan 10x daha hızlı, daha stabil ve sınırsız bant genişliği!
+    </div>
   </div>
 </div>
 
@@ -672,8 +790,8 @@ header {
           <div class="settings-section">
             <div class="settings-title">Bağlantı</div>
             <div class="settings-input-wrap">
-              <div class="field-label" style="margin-bottom:5px">Tunnel URL</div>
-              <input class="settings-input" id="settings-url-input" type="url" placeholder="https://xxxx.trycloudflare.com" oninput="updateBaseUrl(this.value)" />
+              <div class="field-label" style="margin-bottom:5px">Cloudflare Tunnel URL</div>
+              <input class="settings-input" id="settings-url-input" type="url" placeholder="https://myservice.trycloudflare.com" oninput="updateBaseUrl(this.value)" />
             </div>
           </div>
           <div class="settings-section">
@@ -750,7 +868,7 @@ header {
 <script>
 // ===== STATE =====
 let apiKey = 'sk-62dc79cc063a4bfe8d3caf43f445fb08';
-let baseUrl = 'https://moore-ment-presentations-towns.trycloudflare.com';
+let baseUrl = 'https://philip-authorization-seattle-archived.trycloudflare.com';
 let selectedLang = 'Genel';
 let selectedModel = 'gemini-3-flash';
 let messages = [];
@@ -760,6 +878,179 @@ let sidebarOpen = true;
 let selectedImageData = null;
 let selectedImageMime = null;
 let currentMobileTab = 'chat';
+let isLoggedIn = localStorage.getItem('werner-logged-in') === 'true';
+let currentUser = localStorage.getItem('werner-user') || null;
+
+// ===== LOGIN SYSTEM =====
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  
+  if (!email || !password) {
+    showToast('⚠️ Lütfen tüm alanları doldurun!');
+    return;
+  }
+  
+  if (password.length < 6) {
+    showToast('⚠️ Şifre en az 6 karakter olmalı!');
+    return;
+  }
+  
+  try {
+    showToast('🔄 Giriş yapılıyor...');
+    const auth = window.firebaseAuth;
+    const { signInWithEmailAndPassword } = window.firebaseUtils;
+    
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    localStorage.setItem('werner-logged-in', 'true');
+    localStorage.setItem('werner-user', email);
+    isLoggedIn = true;
+    currentUser = email;
+    document.getElementById('header-username').textContent = email.split('@')[0];
+    
+    showToast('✅ Hoş geldiniz!');
+    setTimeout(() => {
+      document.getElementById('login-screen').classList.remove('visible');
+      document.getElementById('setup-screen').classList.add('visible');
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      loadUserSettings();
+    }, 600);
+  } catch (error) {
+    console.error('Login hatası:', error);
+    if (error.code === 'auth/user-not-found') {
+      showToast('❌ Kullanıcı bulunamadı');
+    } else if (error.code === 'auth/wrong-password') {
+      showToast('❌ Şifre yanlış');
+    } else {
+      showToast('❌ Giriş başarısız: ' + error.message);
+    }
+  }
+}
+
+function showRegisterForm() {
+  const email = prompt('E-posta adresinizi girin:');
+  if (!email) return;
+  
+  const password = prompt('Şifre oluşturun (en az 6 karakter):');
+  if (!password || password.length < 6) {
+    showToast('⚠️ Şifre en az 6 karakter olmalı!');
+    return;
+  }
+  
+  handleRegister(email, password);
+}
+
+async function handleRegister(email, password) {
+  try {
+    showToast('🔄 Hesap oluşturuluyor...');
+    const auth = window.firebaseAuth;
+    const db = window.firebaseDb;
+    const { createUserWithEmailAndPassword, addDoc, collection } = window.firebaseUtils;
+    
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Kullanıcı bilgilerini Firestore'a kaydet
+    await addDoc(collection(db, 'users'), {
+      uid: user.uid,
+      email: email,
+      createdAt: new Date(),
+      settings: {
+        baseUrl: '',
+        selectedModel: 'gemini-3-flash',
+        selectedLang: 'Genel'
+      }
+    });
+    
+    showToast('✅ Hesap oluşturuldu! Giriş yapabilirsiniz.');
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+  } catch (error) {
+    console.error('Register hatası:', error);
+    if (error.code === 'auth/email-already-in-use') {
+      showToast('❌ Bu e-posta zaten kullanılıyor');
+    } else if (error.code === 'auth/weak-password') {
+      showToast('❌ Şifre çok zayıf');
+    } else {
+      showToast('❌ Kayıt başarısız: ' + error.message);
+    }
+  }
+}
+
+async function logout() {
+  try {
+    // Chat'i Firestore'a kaydet
+    if (currentUser && messages.length > 0) {
+      await saveChatsToFirebase();
+    }
+    
+    const auth = window.firebaseAuth;
+    const { signOut } = window.firebaseUtils;
+    
+    await signOut(auth);
+    
+    localStorage.removeItem('werner-logged-in');
+    localStorage.removeItem('werner-user');
+    isLoggedIn = false;
+    currentUser = null;
+    messages = [];
+    totalTokens = 0;
+    
+    document.getElementById('header-username').textContent = '-';
+    document.getElementById('app-screen').classList.remove('visible');
+    document.getElementById('setup-screen').classList.remove('visible');
+    document.getElementById('login-screen').classList.add('visible');
+    
+    showToast('👋 Çıkış yapıldı!');
+  } catch (error) {
+    console.error('Logout hatası:', error);
+    showToast('❌ Çıkış başarısız');
+  }
+}
+
+async function saveChatsToFirebase() {
+  try {
+    const auth = window.firebaseAuth;
+    const db = window.firebaseDb;
+    const { addDoc, collection } = window.firebaseUtils;
+    
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    await addDoc(collection(db, 'users', user.uid, 'chats'), {
+      messages: messages,
+      totalTokens: totalTokens,
+      selectedModel: selectedModel,
+      selectedLang: selectedLang,
+      baseUrl: baseUrl,
+      createdAt: new Date(),
+      timestamp: new Date().getTime()
+    });
+    
+    console.log('✓ Chat kaydedildi');
+  } catch (error) {
+    console.error('Chat kaydetme hatası:', error);
+  }
+}
+
+async function loadUserSettings() {
+  try {
+    const auth = window.firebaseAuth;
+    const user = auth.currentUser;
+    
+    if (!user) return;
+    
+    // Kullanıcının en son sohbetini yükle
+    // Bunu daha sonra uygulamayı tercih edebilirsiniz
+    console.log('✓ Kullanıcı ayarları yüklendi');
+  } catch (error) {
+    console.error('Ayarları yükleme hatası:', error);
+  }
+}
 let abortController = null;
 
 // ===== MODEL DATA =====
@@ -845,13 +1136,54 @@ function connect() {
   document.getElementById('user-input').focus();
 }
 
-// Restore session
+// Restore session & check login
 window.addEventListener('load', () => {
-  // Auto-connect with embedded credentials
-  document.getElementById('base-url-input').value = baseUrl;
-  document.getElementById('api-key-input').value = apiKey;
-  connect();
   initTheme();
+  
+  // Firebase auth state listener
+  const auth = window.firebaseAuth;
+  if (auth && auth.onAuthStateChanged) {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        // Kullanıcı giriş yapmış
+        isLoggedIn = true;
+        currentUser = user.email;
+        localStorage.setItem('werner-logged-in', 'true');
+        localStorage.setItem('werner-user', user.email);
+        
+        document.getElementById('login-screen').classList.remove('visible');
+        document.getElementById('setup-screen').classList.add('visible');
+        
+        // Header'a username'i yazdır
+        document.getElementById('header-username').textContent = user.email.split('@')[0];
+        
+        // Eğer URL ve key varsa otomatik bağlan
+        if (baseUrl && apiKey) {
+          document.getElementById('base-url-input').value = baseUrl;
+          document.getElementById('api-key-input').value = apiKey;
+          setTimeout(() => connect(), 500);
+        }
+      } else {
+        // Kullanıcı giriş yapmamış
+        isLoggedIn = false;
+        currentUser = null;
+        localStorage.removeItem('werner-logged-in');
+        localStorage.removeItem('werner-user');
+        
+        document.getElementById('login-screen').classList.add('visible');
+        document.getElementById('setup-screen').classList.remove('visible');
+        document.getElementById('app-screen').classList.remove('visible');
+      }
+    });
+  } else {
+    // Firebase yüklenmemişse fallback
+    if (localStorage.getItem('werner-logged-in') === 'true') {
+      document.getElementById('login-screen').classList.remove('visible');
+      document.getElementById('setup-screen').classList.add('visible');
+    } else {
+      document.getElementById('login-screen').classList.add('visible');
+    }
+  }
 });
 
 // ===== TEMA (Yeşil / Sarı) =====
@@ -880,17 +1212,7 @@ function updateBaseUrl(val) {
 
 function disconnect() {
   if (!confirm('Çıkış yapılsın mı? Sohbet silinecek.')) return;
-  apiKey = ''; baseUrl = ''; messages = []; totalTokens = 0;
-  sessionStorage.clear();
-  document.getElementById('app-screen').classList.remove('visible');
-  document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('status-dot').classList.remove('active');
-  document.getElementById('disc-btn').style.display = 'none';
-  document.getElementById('api-key-input').value = '';
-  document.getElementById('base-url-input').value = '';
-  document.getElementById('settings-api-status').textContent = 'Bağlı değil';
-  document.getElementById('settings-api-status').style.color = 'var(--muted)';
-  clearChat();
+  logout();
 }
 
 function toggleEye() {
