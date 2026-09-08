@@ -15,28 +15,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
-<!-- Firebase SDK CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-
-<script>
-  // Firebase Configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyAtPKO8XS1bVu0gGMC4fNqw0Mr5bVweZaE",
-    authDomain: "werner-chat-12ae9.firebaseapp.com",
-    projectId: "werner-chat-12ae9",
-    storageBucket: "werner-chat-12ae9.firebasestorage.app",
-    messagingSenderId: "264454655012",
-    appId: "1:264454655012:web:c7093a4a46fb258cd75cb1",
-    measurementId: "G-6MP5FZ03Y8"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  window.firebaseAuth = firebase.auth();
-  window.firebaseDb = firebase.firestore();
-</script>
 <style>
 :root {
   --bg: #0a0a0f;
@@ -196,60 +174,6 @@ header {
   font-size:0.67rem; color:var(--muted); font-family:'JetBrains Mono',monospace;
 }
 .setup-divider::before,.setup-divider::after {
-  content:''; flex:1; height:1px; background:var(--border);
-}
-
-/* ===== LOGIN SCREEN ===== */
-#login-screen {
-  position:relative; z-index:10; flex:1;
-  display:none; align-items:center; justify-content:center; padding:24px 20px;
-  overflow-y: auto;
-}
-#login-screen.visible { display:flex; }
-
-/* ===== REGISTER SCREEN ===== */
-#register-screen {
-  position:relative; z-index:10; flex:1;
-  display:none; align-items:center; justify-content:center; padding:24px 20px;
-  overflow-y: auto;
-}
-#register-screen.visible { display:flex; }
-.login-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:20px; padding:48px 40px; max-width:380px; width:100%; text-align:center;
-  animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-.login-card h1 { font-size:2rem; font-weight:800; margin-bottom:8px; background:linear-gradient(135deg, var(--accent), #8ef9f3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.login-card p { color:var(--muted); font-size:0.9rem; margin-bottom:32px; line-height:1.6; }
-.login-form { display:flex; flex-direction:column; gap:16px; }
-.login-input-group { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
-.login-input-group label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace; font-weight:600; }
-.login-input {
-  width:100%; background:var(--surface2); border:1px solid var(--border);
-  border-radius:10px; padding:14px 16px; color:var(--text);
-  font-family:'JetBrains Mono',monospace; font-size:0.9rem; outline:none; transition:all 0.2s;
-  -webkit-appearance:none;
-}
-.login-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,0.1); background:var(--surface3); }
-.login-input::placeholder { color:var(--muted); opacity:0.6; }
-.btn-login {
-  width:100%; background:linear-gradient(135deg, var(--accent), #8ef9f3); color:#000; border:none; border-radius:10px;
-  padding:14px 16px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
-  cursor:pointer; transition:all 0.2s; letter-spacing:0.02em; margin-top:8px;
-  box-shadow: 0 4px 15px rgba(0,255,136,0.2);
-}
-.btn-login:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,255,136,0.3); }
-.btn-login:active { opacity:0.85; transform:scale(0.98); }
-.login-note {
-  margin-top:20px; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.2);
-  border-radius:8px; padding:12px; font-size:0.75rem; color:var(--purple); text-align:center; line-height:1.5;
-}
-.login-divider {
-  display:flex; align-items:center; gap:10px; margin:20px 0;
-  font-size:0.68rem; color:var(--muted); font-family:'JetBrains Mono',monospace;
-}
-.login-divider::before,.login-divider::after {
   content:''; flex:1; height:1px; background:var(--border);
 }
 
@@ -650,9 +574,6 @@ header {
 <!-- HEADER -->
 <header>
   <div class="logo">Wer<span>Ner</span></div>
-  <div style="font-size:0.75rem; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-left:16px; border-left:1px solid var(--border); padding-left:16px;">
-    <span id="header-username">-</span>
-  </div>
   <select class="model-select" id="model-select"></select>
   <div class="header-right">
     <span class="token-badge" id="token-badge">~0 token</span>
@@ -663,70 +584,6 @@ header {
   </div>
 </header>
 
-<!-- LOGIN SCREEN -->
-<div id="login-screen">
-  <div class="login-card">
-    <h1>WerNer</h1>
-    <p>Yapay Zeka Asistanına Hoş Geldiniz</p>
-    
-    <form class="login-form" onsubmit="handleLogin(event)">
-      <div class="login-input-group">
-        <label for="email">E-posta</label>
-        <input type="email" id="email" class="login-input" placeholder="örnek@gmail.com" required autocomplete="email" />
-      </div>
-      
-      <div class="login-input-group">
-        <label for="password">Şifre</label>
-        <input type="password" id="password" class="login-input" placeholder="Şifrenizi girin" required autocomplete="current-password" />
-      </div>
-      
-      <button type="submit" class="btn-login">Giriş Yap →</button>
-    </form>
-    
-    <div class="login-divider">veya</div>
-    
-    <button class="btn-login" style="background:linear-gradient(135deg, #00ff88, #8ef9f3); box-shadow:0 4px 15px rgba(0,255,136,0.2);" onclick="showRegisterForm()">Yeni Hesap Oluştur</button>
-    
-    <div class="login-note">
-      💡 Firebase ile güvenli oturum açın. Verileriniz buluta kaydedilir.
-    </div>
-  </div>
-</div>
-
-<!-- REGISTER SCREEN -->
-<div id="register-screen">
-  <div class="login-card">
-    <h1>Yeni Hesap</h1>
-    <p>WerNer'e Katıl</p>
-    
-    <form class="login-form" onsubmit="handleRegister(event)">
-      <div class="login-input-group">
-        <label for="reg-email">E-posta</label>
-        <input type="email" id="reg-email" class="login-input" placeholder="örnek@gmail.com" required autocomplete="email" />
-      </div>
-      
-      <div class="login-input-group">
-        <label for="reg-password">Şifre</label>
-        <input type="password" id="reg-password" class="login-input" placeholder="En az 6 karakter" required autocomplete="new-password" />
-      </div>
-      
-      <div class="login-input-group">
-        <label for="reg-password2">Şifre Tekrar</label>
-        <input type="password" id="reg-password2" class="login-input" placeholder="Şifrenizi tekrar girin" required autocomplete="new-password" />
-      </div>
-      
-      <button type="submit" class="btn-login">Hesap Oluştur →</button>
-    </form>
-    
-    <div class="login-divider">veya</div>
-    
-    <button class="btn-login" style="background:linear-gradient(135deg, #a78bfa, #c084fc); box-shadow:0 4px 15px rgba(167,139,250,0.2);" onclick="goToLogin()">Giriş Yap</button>
-    
-    <div class="login-note">
-      🔒 Şifreleriniz encrypted olarak Firebase'de tutulur.
-    </div>
-  </div>
-</div>
 <div id="setup-screen">
   <div class="setup-card">
     <span class="setup-icon">⌨️</span>
@@ -832,6 +689,12 @@ header {
             </div>
           </div>
           <div class="settings-section">
+            <div class="settings-title">🔍 Araştırma (Yerel MCP)</div>
+            <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+              Web arama / sayfa okuma / görsel analiz, Antigravity Tools'un yerel MCP sunucuları (<span style="color:var(--accent)">127.0.0.1:8045</span>) üzerinden otomatik çalışır. Ekstra anahtar girmene gerek yok — Antigravity Tools açık ve "MCP Sunucuları" etkin olduğu sürece hazır.
+            </div>
+          </div>
+          <div class="settings-section">
             <div class="settings-title">Sohbet</div>
             <button class="settings-btn" onclick="clearChat(); switchMobileTab('chat')"><span class="si">🗑</span>Sohbeti Temizle</button>
             <button class="settings-btn" onclick="exportChat()"><span class="si">⬇</span>Dışa Aktar (.md)</button>
@@ -906,6 +769,14 @@ header {
 // ===== STATE =====
 let apiKey = 'sk-62dc79cc063a4bfe8d3caf43f445fb08';
 let baseUrl = 'https://philip-authorization-seattle-archived.trycloudflare.com';
+
+// ============================================================
+// 🔧 BURAYI DÜZENLE — Cloudflare Tunnel adresi değişince sadece
+// bu iki satırı güncelle, başka hiçbir yeri değiştirmene gerek yok.
+// ============================================================
+const DEFAULT_BASE_URL = 'https://philip-authorization-seattle-archived.trycloudflare.com';
+const DEFAULT_API_KEY  = 'sk-62dc79cc063a4bfe8d3caf43f445fb08';
+// ============================================================
 let selectedLang = 'Genel';
 let selectedModel = 'gemini-3-flash';
 let messages = [];
@@ -915,194 +786,105 @@ let sidebarOpen = true;
 let selectedImageData = null;
 let selectedImageMime = null;
 let currentMobileTab = 'chat';
-let isLoggedIn = localStorage.getItem('werner-logged-in') === 'true';
-let currentUser = localStorage.getItem('werner-user') || null;
 
-// ===== LOGIN SYSTEM =====
-async function handleLogin(e) {
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  
-  if (!email || !password) {
-    showToast('⚠️ Lütfen tüm alanları doldurun!');
-    return;
+// ===== ARAŞTIRMA ARAÇLARI — Antigravity Tools'un yerel MCP sunucuları =====
+// Bu sunucular z.ai'yi arkada kendisi çağırır, koda hiçbir API anahtarı gömülmez.
+const MCP_BASE = 'http://127.0.0.1:8045/mcp';
+const mcpSessionIds = {};
+
+async function mcpCall(endpointSlug, toolName, args) {
+  const url = `${MCP_BASE}/${endpointSlug}/mcp`;
+  const baseHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' };
+
+  async function callTools(headers) {
+    return fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: Date.now(),
+        method: 'tools/call',
+        params: { name: toolName, arguments: args }
+      })
+    });
   }
-  
-  if (password.length < 6) {
-    showToast('⚠️ Şifre en az 6 karakter olmalı!');
-    return;
-  }
-  
+
   try {
-    showToast('🔄 Giriş yapılıyor...');
-    const auth = window.firebaseAuth;
-    
-    await auth.signInWithEmailAndPassword(email, password);
-    
-    localStorage.setItem('werner-logged-in', 'true');
-    localStorage.setItem('werner-user', email);
-    isLoggedIn = true;
-    currentUser = email;
-    document.getElementById('header-username').textContent = email.split('@')[0];
-    
-    showToast('✅ Hoş geldiniz!');
-    setTimeout(() => {
-      document.getElementById('login-screen').classList.remove('visible');
-      document.getElementById('setup-screen').classList.add('visible');
-      document.getElementById('email').value = '';
-      document.getElementById('password').value = '';
-      loadUserSettings();
-    }, 600);
-  } catch (error) {
-    console.error('Login hatası:', error);
-    if (error.code === 'auth/user-not-found') {
-      showToast('❌ Kullanıcı bulunamadı');
-    } else if (error.code === 'auth/wrong-password') {
-      showToast('❌ Şifre yanlış');
-    } else {
-      showToast('❌ Giriş başarısız: ' + error.message);
+    let headers = { ...baseHeaders };
+    if (mcpSessionIds[endpointSlug]) headers['Mcp-Session-Id'] = mcpSessionIds[endpointSlug];
+
+    let res = await callTools(headers);
+
+    // Sunucu önce initialize istiyorsa (oturum yoksa) bir kez dene
+    if (!res.ok && !mcpSessionIds[endpointSlug]) {
+      const initRes = await fetch(url, {
+        method: 'POST',
+        headers: baseHeaders,
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 1, method: 'initialize',
+          params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'werner-web', version: '1.0' } }
+        })
+      });
+      const sid = initRes.headers.get('Mcp-Session-Id') || initRes.headers.get('mcp-session-id');
+      if (sid) { mcpSessionIds[endpointSlug] = sid; headers['Mcp-Session-Id'] = sid; }
+      res = await callTools(headers);
     }
-  }
-}
 
-function showRegisterForm() {
-  document.getElementById('login-screen').classList.remove('visible');
-  document.getElementById('register-screen').classList.add('visible');
-}
+    if (!res.ok) {
+      const t = await res.text();
+      return `HATA: Yerel MCP sunucusu hata döndü (HTTP ${res.status}): ${t.slice(0,200)}. Antigravity Tools'da "MCP Sunucuları" etkin mi kontrol et.`;
+    }
 
-function goToLogin() {
-  document.getElementById('register-screen').classList.remove('visible');
-  document.getElementById('login-screen').classList.add('visible');
-}
-
-async function handleRegister(e) {
-  e.preventDefault();
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const password2 = document.getElementById('reg-password2').value;
-  
-  if (!email || !password || !password2) {
-    showToast('⚠️ Lütfen tüm alanları doldurun!');
-    return;
-  }
-  
-  if (password.length < 6) {
-    showToast('⚠️ Şifre en az 6 karakter olmalı!');
-    return;
-  }
-  
-  if (password !== password2) {
-    showToast('⚠️ Şifreler uyuşmamaktadır!');
-    return;
-  }
-  
-  try {
-    showToast('🔄 Hesap oluşturuluyor...');
-    const auth = window.firebaseAuth;
-    const db = window.firebaseDb;
-    
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    const user = userCredential.user;
-    
-    // Kullanıcı bilgilerini Firestore'a kaydet
-    await db.collection('users').doc(user.uid).set({
-      email: email,
-      createdAt: new Date(),
-      settings: {
-        baseUrl: '',
-        selectedModel: 'gemini-3-flash',
-        selectedLang: 'Genel'
+    const ct = res.headers.get('content-type') || '';
+    let payload;
+    if (ct.includes('text/event-stream')) {
+      const raw = await res.text();
+      const dataLines = raw.split('\n').filter(l => l.startsWith('data:')).map(l => l.slice(5).trim());
+      let parsed = null;
+      for (let i = dataLines.length - 1; i >= 0; i--) {
+        try { parsed = JSON.parse(dataLines[i]); break; } catch {}
       }
-    });
-    
-    showToast('✅ Hesap oluşturuldu! Giriş yapabilirsiniz.');
-    setTimeout(() => {
-      document.getElementById('register-screen').classList.remove('visible');
-      document.getElementById('login-screen').classList.add('visible');
-      document.getElementById('email').value = email;
-      document.getElementById('password').value = password;
-      document.getElementById('reg-email').value = '';
-      document.getElementById('reg-password').value = '';
-      document.getElementById('reg-password2').value = '';
-    }, 800);
-  } catch (error) {
-    console.error('Register hatası:', error);
-    if (error.code === 'auth/email-already-in-use') {
-      showToast('❌ Bu e-posta zaten kullanılıyor');
-    } else if (error.code === 'auth/weak-password') {
-      showToast('❌ Şifre çok zayıf (en az 6 karakter)');
+      payload = parsed;
     } else {
-      showToast('❌ Kayıt başarısız: ' + error.message);
+      payload = await res.json();
     }
-  }
-}
 
-async function logout() {
-  try {
-    // Chat'i Firestore'a kaydet
-    if (currentUser && messages.length > 0) {
-      await saveChatsToFirebase();
+    if (!payload) return 'HATA: MCP sunucusundan geçerli bir yanıt alınamadı.';
+    if (payload.error) return 'HATA: ' + (payload.error.message || JSON.stringify(payload.error));
+
+    const content = payload.result?.content;
+    if (Array.isArray(content)) {
+      return content.map(c => c.text || JSON.stringify(c)).join('\n\n').slice(0, 6000);
     }
-    
-    const auth = window.firebaseAuth;
-    await auth.signOut();
-    
-    localStorage.removeItem('werner-logged-in');
-    localStorage.removeItem('werner-user');
-    isLoggedIn = false;
-    currentUser = null;
-    messages = [];
-    totalTokens = 0;
-    
-    document.getElementById('header-username').textContent = '-';
-    document.getElementById('app-screen').classList.remove('visible');
-    document.getElementById('setup-screen').classList.remove('visible');
-    document.getElementById('login-screen').classList.add('visible');
-    
-    showToast('👋 Çıkış yapıldı!');
-  } catch (error) {
-    console.error('Logout hatası:', error);
-    showToast('❌ Çıkış başarısız');
+    return JSON.stringify(payload.result || payload).slice(0, 6000);
+  } catch (e) {
+    return `HATA: Yerel MCP sunucusuna ulaşılamadı (${url}): ${e.message}. Antigravity Tools açık mı ve "MCP Sunucuları" etkin mi kontrol et.`;
   }
 }
 
-async function saveChatsToFirebase() {
-  try {
-    const auth = window.firebaseAuth;
-    const db = window.firebaseDb;
-    
-    const user = auth.currentUser;
-    if (!user) return;
-    
-    await db.collection('users').doc(user.uid).collection('chats').add({
-      messages: messages,
-      totalTokens: totalTokens,
-      selectedModel: selectedModel,
-      selectedLang: selectedLang,
-      baseUrl: baseUrl,
-      createdAt: new Date(),
-      timestamp: new Date().getTime()
-    });
-    
-    console.log('✓ Chat kaydedildi');
-  } catch (error) {
-    console.error('Chat kaydetme hatası:', error);
-  }
+async function tavilySearch(query) {
+  return await mcpCall('web_search_prime', 'web_search_prime', { query });
 }
 
-async function loadUserSettings() {
-  try {
-    const auth = window.firebaseAuth;
-    const user = auth.currentUser;
-    
-    if (!user) return;
-    
-    // Kullanıcının profil bilgilerini yükle
-    console.log('✓ Kullanıcı ayarları yüklendi');
-  } catch (error) {
-    console.error('Ayarları yükleme hatası:', error);
-  }
+async function readUrlContent(url) {
+  return await mcpCall('web_reader', 'webReader', { url });
+}
+
+async function analyzeImageTool(imageUrl, question) {
+  return await mcpCall('zai-mcp-server', 'analyze_image', { image_url: imageUrl, question: question || '' });
+}
+
+function logout() {
+  messages = [];
+  totalTokens = 0;
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('setup-screen').classList.add('visible');
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('status-dot').classList.remove('active');
+  document.getElementById('disc-btn').style.display = 'none';
+  document.getElementById('settings-api-status').textContent = 'Bağlı değil';
+  document.getElementById('settings-api-status').style.color = 'var(--muted)';
+  showToast('👋 Çıkış yapıldı!');
 }
 let abortController = null;
 
@@ -1189,56 +971,22 @@ function connect() {
   document.getElementById('user-input').focus();
 }
 
-// Restore session & check login
+// Restore session — giriş ekranı yok, kodun içine gömülü URL/anahtarla otomatik bağlan
 window.addEventListener('load', () => {
   initTheme();
-  
-  // Register screen'i gizle
-  document.getElementById('register-screen').classList.remove('visible');
-  
-  // Firebase auth state listener
-  const auth = window.firebaseAuth;
-  if (auth && auth.onAuthStateChanged) {
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        // Kullanıcı giriş yapmış
-        isLoggedIn = true;
-        currentUser = user.email;
-        localStorage.setItem('werner-logged-in', 'true');
-        localStorage.setItem('werner-user', user.email);
-        
-        document.getElementById('login-screen').classList.remove('visible');
-        document.getElementById('setup-screen').classList.add('visible');
-        
-        // Header'a username'i yazdır
-        document.getElementById('header-username').textContent = user.email.split('@')[0];
-        
-        // Eğer URL ve key varsa otomatik bağlan
-        if (baseUrl && apiKey) {
-          document.getElementById('base-url-input').value = baseUrl;
-          document.getElementById('api-key-input').value = apiKey;
-          setTimeout(() => connect(), 500);
-        }
-      } else {
-        // Kullanıcı giriş yapmamış
-        isLoggedIn = false;
-        currentUser = null;
-        localStorage.removeItem('werner-logged-in');
-        localStorage.removeItem('werner-user');
-        
-        document.getElementById('login-screen').classList.add('visible');
-        document.getElementById('setup-screen').classList.remove('visible');
-        document.getElementById('app-screen').classList.remove('visible');
-      }
-    });
-  } else {
-    // Firebase yüklenmemişse fallback
-    if (localStorage.getItem('werner-logged-in') === 'true') {
-      document.getElementById('login-screen').classList.remove('visible');
-      document.getElementById('setup-screen').classList.add('visible');
-    } else {
-      document.getElementById('login-screen').classList.add('visible');
-    }
+
+  document.getElementById('setup-screen').classList.add('visible');
+
+  // Önce sessionStorage'a bakılır (kullanıcı elle farklı bir şey girip bağlanmışsa),
+  // yoksa koddaki DEFAULT_BASE_URL / DEFAULT_API_KEY kullanılır.
+  const savedUrl = sessionStorage.getItem('ag_url') || DEFAULT_BASE_URL;
+  const savedKey = sessionStorage.getItem('ag_key') || DEFAULT_API_KEY;
+  if (savedUrl) document.getElementById('base-url-input').value = savedUrl;
+  if (savedKey) document.getElementById('api-key-input').value = savedKey;
+
+  // Kodun içinde varsayılan URL/anahtar tanımlıysa otomatik bağlan
+  if (savedUrl && savedKey) {
+    connect();
   }
 });
 
@@ -1579,6 +1327,138 @@ function stopGeneration() {
   if (abortController) { abortController.abort(); }
 }
 
+// ===== ARAÇ TANIMLARI =====
+const RESEARCH_TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "web_search",
+      description: "Web'de arama yapıp güncel bilgiler bul. Sorular, haberler, araştırma konuları için kullan.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Web'de aranacak arama sorgusu" }
+        },
+        required: ["query"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_url",
+      description: "Verilen URL'deki web sayfasını oku ve içeriğini çıkar. Makaleler, bloglar, belge sayfaları okumak için kullan.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Okunacak web sayfasının URL'i" }
+        },
+        required: ["url"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "analyze_image",
+      description: "Verilen görsel URL'sini analiz et. Not: bu araç şu an devre dışı, kullanıcı görseli doğrudan sohbete yükleyebilir.",
+      parameters: {
+        type: "object",
+        properties: {
+          image_url: { type: "string", description: "Analiz edilecek görselin URL'i" },
+          question: { type: "string", description: "Görsel hakkında sorulan soru (isteğe bağlı)" }
+        },
+        required: ["image_url"]
+      }
+    }
+  }
+];
+
+async function executeToolCall(name, argsStr) {
+  let args = {};
+  try { args = JSON.parse(argsStr || '{}'); } catch {}
+  if (name === 'web_search') return await tavilySearch(args.query || '');
+  if (name === 'read_url') return await readUrlContent(args.url || '');
+  if (name === 'analyze_image') return await analyzeImageTool(args.image_url, args.question);
+  return 'HATA: Bilinmeyen araç: ' + name;
+}
+
+// Tek bir streaming API isteği yapar, içeriği contentEl'e canlı yazar (varsa),
+// { fullText, toolCalls, finishReason } döner.
+async function streamChatTurn(contentEl) {
+  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'x-api-key': apiKey
+    },
+    body: JSON.stringify({
+      model: selectedModel,
+      max_tokens: 8192,
+      stream: true,
+      tools: RESEARCH_TOOLS,
+      messages: [
+        { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor. Matematiksel işlem, formül, denklem ya da ifade yazarken MUTLAKA LaTeX sözdizimi kullan: satır içi ifadeler için tek dolar işareti ($...$), ayrı bir satırda gösterilecek denklemler için çift dolar işareti ($$...$$) ile çevrele. Üslü ifadeler için ^{...}, kesirler için \\frac{}{}, alt indis için _{...} kullan. Asla LaTeX komutlarını (\\cdot, \\ge, \\frac vb.) dolar işareti olmadan düz metin gibi yazma; arayüz bu ifadeleri yalnızca $ / $$ ile çevrelendiğinde düzgün render ediyor. Sen web araması yapabilir ve web sayfalarını okuyabilirsin; güncel bilgi, haber, fiyat, tarih gerektiren veya emin olmadığın sorularda mutlaka web_search aracını kullan.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
+        ...messages
+      ]
+    }),
+    signal: abortController.signal
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
+  }
+
+  let fullText = '';
+  const toolCallsAcc = {};
+  let finishReason = null;
+  const chat = document.getElementById('chat');
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') continue;
+      try {
+        const json = JSON.parse(data);
+        const choice = json.choices?.[0];
+        const delta = choice?.delta;
+        if (delta?.content) {
+          fullText += delta.content;
+          if (contentEl) {
+            contentEl.innerHTML = renderMarkdown(fullText);
+            chat.scrollTop = chat.scrollHeight;
+          }
+        }
+        if (delta?.tool_calls) {
+          delta.tool_calls.forEach(tc => {
+            const idx = tc.index ?? 0;
+            if (!toolCallsAcc[idx]) toolCallsAcc[idx] = { id: '', name: '', arguments: '' };
+            if (tc.id) toolCallsAcc[idx].id = tc.id;
+            if (tc.function?.name) toolCallsAcc[idx].name += tc.function.name;
+            if (tc.function?.arguments) toolCallsAcc[idx].arguments += tc.function.arguments;
+          });
+        }
+        if (choice?.finish_reason) finishReason = choice.finish_reason;
+      } catch {}
+    }
+  }
+
+  return { fullText, toolCalls: Object.values(toolCallsAcc).filter(tc => tc.name), finishReason };
+}
+
 // ===== SEND =====
 async function sendMessage() {
   if (isLoading) return;
@@ -1605,6 +1485,7 @@ async function sendMessage() {
     userContent = text;
   }
 
+  const historyLenBeforeSend = messages.length;
   messages.push({ role: 'user', content: userContent });
   totalTokens += estimateTokens(text);
   updateTokens();
@@ -1616,124 +1497,61 @@ async function sendMessage() {
   abortController = new AbortController();
 
   try {
-    const res = await fetch(`${baseUrl}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey,
-        'x-api-key': apiKey
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        max_tokens: 8192,
-        stream: true,
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "web_search",
-              description: "Web'de arama yapıp güncel bilgiler bul. Sorular, haberler, araştırma konuları için kullan.",
-              parameters: {
-                type: "object",
-                properties: {
-                  query: {
-                    type: "string",
-                    description: "Web'de aranacak arama sorgusu"
-                  }
-                },
-                required: ["query"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
-              name: "read_url",
-              description: "Verilen URL'deki web sayfasını oku ve içeriğini çıkar. Makaleler, bloglar, belge sayfaları okumak için kullan.",
-              parameters: {
-                type: "object",
-                properties: {
-                  url: {
-                    type: "string",
-                    description: "Okunacak web sayfasının URL'i"
-                  }
-                },
-                required: ["url"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
-              name: "analyze_image",
-              description: "Verilen görsel URL'sini analiz et ve görsel hakkında detaylı bilgi sağla. Fotoğraflar, diyagramlar, ekran görüntüleri analiz etmek için kullan.",
-              parameters: {
-                type: "object",
-                properties: {
-                  image_url: {
-                    type: "string",
-                    description: "Analiz edilecek görselin URL'i"
-                  },
-                  question: {
-                    type: "string",
-                    description: "Görsel hakkında sorulan soru (isteğe bağlı)"
-                  }
-                },
-                required: ["image_url"]
-              }
-            }
+    let contentEl = null;
+    let finalText = '';
+    let round = 0;
+    const MAX_ROUNDS = 5;
+
+    while (round < MAX_ROUNDS) {
+      round++;
+      const result = await streamChatTurn(contentEl);
+
+      if (result.toolCalls.length > 0) {
+        // Her araç çağrısına kalıcı bir id ata (yoksa üret)
+        result.toolCalls.forEach(tc => {
+          if (!tc.id) tc.id = 'call_' + Math.random().toString(36).slice(2);
+        });
+
+        messages.push({
+          role: 'assistant',
+          content: result.fullText || null,
+          tool_calls: result.toolCalls.map(tc => ({
+            id: tc.id,
+            type: 'function',
+            function: { name: tc.name, arguments: tc.arguments }
+          }))
+        });
+
+        removeTyping();
+        showThinking(false); // "araştırılıyor" göstergesi
+
+        for (const tc of result.toolCalls) {
+          if (tc.name === 'web_search') {
+            let q = '';
+            try { q = JSON.parse(tc.arguments || '{}').query || ''; } catch {}
+            showToast('🔍 aranıyor: ' + q.slice(0, 60));
           }
-        ],
-        messages: [
-          { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor. Matematiksel işlem, formül, denklem ya da ifade yazarken MUTLAKA LaTeX sözdizimi kullan: satır içi ifadeler için tek dolar işareti ($...$), ayrı bir satırda gösterilecek denklemler için çift dolar işareti ($$...$$) ile çevrele. Üslü ifadeler için ^{...}, kesirler için \\frac{}{}, alt indis için _{...} kullan. Asla LaTeX komutlarını (\\cdot, \\ge, \\frac vb.) dolar işareti olmadan düz metin gibi yazma; arayüz bu ifadeleri yalnızca $ / $$ ile çevrelendiğinde düzgün render ediyor. Sen web araması yapabilir, web sayfalarını okuyabilir ve görselleri analiz edebilirsin. Kullanıcı sorarsa bu yeteneklerini kullan.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
-          ...messages
-        ]
-      }),
-      signal: abortController.signal
-    });
+          const toolResult = await executeToolCall(tc.name, tc.arguments);
+          messages.push({ role: 'tool', tool_call_id: tc.id, content: toolResult });
+        }
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
-    }
-
-    removeTyping();
-    let fullText = '';
-    const contentEl = renderMessage('assistant', '', true);
-    const chat = document.getElementById('chat');
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') break;
-        try {
-          const json = JSON.parse(data);
-          const delta = json.choices?.[0]?.delta?.content || '';
-          if (delta) {
-            fullText += delta;
-            contentEl.innerHTML = renderMarkdown(fullText);
-            chat.scrollTop = chat.scrollHeight;
-          }
-        } catch {}
+        removeTyping();
+        showThinking(isThinkingModel); // bir sonraki round için tekrar "düşünüyor" göster
+        continue; // yeni round: modele araç sonuçlarını gönder
       }
+
+      // Araç çağrısı yok → bu son (nihai) yanıt
+      removeTyping();
+      finalText = result.fullText || '(boş yanıt)';
+      if (!contentEl) contentEl = renderMessage('assistant', '', true);
+      contentEl.innerHTML = renderMarkdown(finalText);
+      contentEl.classList.remove('stream-cursor');
+      break;
     }
 
-    contentEl.classList.remove('stream-cursor');
-    if (!fullText) fullText = '(boş yanıt)';
-
-    messages.push({ role: 'assistant', content: fullText });
-    totalTokens += estimateTokens(fullText);
+    if (!finalText) finalText = '(yanıt alınamadı)';
+    messages.push({ role: 'assistant', content: finalText });
+    totalTokens += estimateTokens(finalText);
     updateTokens();
 
   } catch (err) {
@@ -1746,7 +1564,7 @@ async function sendMessage() {
       errDiv.textContent = 'Bağlantı hatası: ' + err.message;
       document.getElementById('chat').appendChild(errDiv);
       document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-      messages.pop();
+      messages.length = historyLenBeforeSend; // sadece kullanıcı mesajını da geri al
     }
   }
 
