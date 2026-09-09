@@ -778,7 +778,7 @@ const DEFAULT_BASE_URL = 'https://tape-mambo-fat-volleyball.trycloudflare.com';
 const DEFAULT_API_KEY  = 'sk-62dc79cc063a4bfe8d3caf43f445fb08';
 // ============================================================
 let selectedLang = 'Genel';
-let selectedModel = 'gemini-3-flash';
+let selectedModel = 'gemini-3.7-flash';
 let messages = [];
 let totalTokens = 0;
 let isLoading = false;
@@ -891,24 +891,23 @@ let abortController = null;
 // ===== MODEL DATA =====
 const MODELS = [
   // Werner 3.x
-  { value: 'gemini-pro-agent',           name: 'Werner 3.1 Pro (High Agent)', desc: 'En güçlü pro agent', group: 'Werner 3.x' },
-  { value: 'gemini-3.1-pro-high',        name: 'Werner 3.1 Pro (High)',       desc: 'En yeni Pro Max',    group: 'Werner 3.x' },
-  { value: 'gemini-3.1-pro-low',         name: 'Werner 3.1 Pro (Low)',        desc: 'En yeni Pro',        group: 'Werner 3.x' },
-  { value: 'gemini-3.1-flash-lite',      name: 'Werner 3.1 Flash Lite',       desc: 'Hızlı & hafif',     group: 'Werner 3.x' },
-  { value: 'gemini-2.5-flash-lite',      name: 'Werner 3.1 Flash Lite (Alt)', desc: 'Alternatif lite',   group: 'Werner 3.x' },
-  { value: 'gemini-3.1-flash-image',     name: 'Werner 3.1 Flash (Görsel)',   desc: 'Görsel girdi',      group: 'Werner 3.x' },
-  { value: 'gemini-3-flash',             name: 'Werner 3 Flash',              desc: 'Hızlı & verimli',   group: 'Werner 3.x' },
-  { value: 'gemini-3-flash-agent',       name: 'Werner 3.5 Flash (High)',     desc: 'Yüksek kalite',     group: 'Werner 3.x' },
-  { value: 'gemini-3.5-flash-low',       name: 'Werner 3.5 Flash (Medium)',   desc: 'Dengeli',           group: 'Werner 3.x' },
-  { value: 'gemini-3.5-flash-extra-low', name: 'Werner 3.5 Flash (Low)',      desc: 'Ultra verimli',     group: 'Werner 3.x' },
-  { value: 'gemini-3-pro-image',         name: 'Werner Görsel (1:1)',          desc: 'Resim üretimi',     group: 'Werner 3.x' },
+  { value: 'gemini-3.1-pro',            name: 'Werner 3.1 Pro',              desc: 'En yeni Pro Max',   group: 'Werner 3.x' },
+  { value: 'gemini-3.1-flash-lite',     name: 'Werner 3.1 Flash Lite',       desc: 'Hızlı & hafif',     group: 'Werner 3.x' },
+  { value: 'gemini-3.1-flash-image',    name: 'Werner 3.1 Flash (Görsel)',   desc: 'Görsel girdi',      group: 'Werner 3.x' },
+  { value: 'gemini-3.7-flash',          name: 'Werner 3.7 Flash',            desc: 'Hızlı & verimli',   group: 'Werner 3.x' },
+  { value: 'gemini-3.5-flash-lite',     name: 'Werner 3.5 Flash Lite',       desc: 'Ultra verimli',     group: 'Werner 3.x' },
+  { value: 'gemini-3.8-flash-high',     name: 'Werner 3.8 Flash (High)',     desc: 'Yüksek kalite',     group: 'Werner 3.x' },
+  { value: 'gemini-3.8-flash-medium',   name: 'Werner 3.8 Flash (Medium)',   desc: 'Dengeli',           group: 'Werner 3.x' },
+  { value: 'gemini-3.8-flash-low',      name: 'Werner 3.8 Flash (Low)',      desc: 'Ultra verimli',     group: 'Werner 3.x' },
+  { value: 'gemini-3.8-flash-tiered',   name: 'Werner 3.8 Flash (Tiered)',   desc: 'Katmanlı model',    group: 'Werner 3.x' },
   // Werner 2.x
   { value: 'gemini-2.5-pro',            name: 'Werner 2.5 Pro',              desc: 'Güçlü & kapsamlı',  group: 'Werner 2.x' },
   { value: 'gemini-2.5-flash',          name: 'Werner 2.5 Flash',            desc: 'Dengeli seçim',     group: 'Werner 2.x' },
   { value: 'gemini-2.5-flash-thinking', name: 'Werner 2.5 Flash Thinking',   desc: 'Derin düşünme',     group: 'Werner 2.x' },
+  { value: 'gemini-2.5-flash-lite',     name: 'Werner 2.5 Flash Lite',       desc: 'Hızlı & hafif',     group: 'Werner 2.x' },
   // Werner Max
   { value: 'claude-sonnet-4-6',         name: 'Werner Max Sonnet',           desc: 'Thinking destekli', group: 'Werner Max' },
-  { value: 'claude-opus-4-6-thinking',  name: 'Werner Max Opus',             desc: 'En güçlü model',    group: 'Werner Max' },
+  { value: 'claude-opus-4-6',           name: 'Werner Max Opus',             desc: 'En güçlü model',    group: 'Werner Max' },
   { value: 'gpt-oss-120b-medium',       name: 'Werner OSS 120B',             desc: 'Açık kaynak güç',   group: 'Werner Max' },
 ];
 
