@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#07100b" id="meta-theme-color">
 <title>WerNer — Yapay Zeka Asistanı</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -15,661 +15,689 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+<!-- PowerPoint Dosyası Oluşturmak İçin Kütüphaneler -->
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/libs/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
+
 <style>
+/* =====================================================
+   TEMA DEĞİŞKENLERİ — applyTheme şu 6 değeri set eder:
+   --bg, --accent, --accent2, --tint, --text, --on-accent
+   ===================================================== */
 :root {
-  --bg: #0a0a0f;
-  --surface: #111118;
-  --surface2: #1a1a26;
-  --surface3: #22223a;
-  --border: #2a2a3d;
-  --accent: #00ff88;
-  --accent-dim: rgba(0,255,136,0.1);
-  --purple: #a78bfa;
-  --text: #e8e8f0;
-  --muted: #6b6b8a;
-  --red: #ef4444;
-  --yellow: #f59e0b;
+  --bg: #07100b; --accent: #00ff88; --accent2: #00c2ff; --tint: #ffffff;
+  --text: #eceef8; --on-accent: #06100a;
+  --surface:  color-mix(in srgb, var(--bg) 93%, var(--tint));
+  --surface2: color-mix(in srgb, var(--bg) 88%, var(--tint));
+  --surface3: color-mix(in srgb, var(--bg) 81%, var(--tint));
+  --border:   color-mix(in srgb, var(--bg) 80%, var(--tint));
+  --muted:    color-mix(in srgb, var(--text) 52%, var(--bg));
+  --glass:    color-mix(in srgb, var(--bg) 62%, transparent);
+  --glass2:   color-mix(in srgb, var(--surface) 72%, transparent);
+  --accent-dim:  color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-mid:  color-mix(in srgb, var(--accent) 28%, transparent);
+  --accent-glow: color-mix(in srgb, var(--accent) 50%, transparent);
+  --accent2-dim: color-mix(in srgb, var(--accent2) 12%, transparent);
+  --grad: linear-gradient(135deg, var(--accent), var(--accent2));
+  --code-bg: #0b0d14; --red: #ef4444; --yellow: #f59e0b;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
-}
-[data-theme="yellow"] {
-  --accent: #ffd60a;
-  --accent-dim: rgba(255,214,10,0.1);
+  --mx: 50%; --my: 30%;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html { height:100%; height: -webkit-fill-available; }
+html { height:100%; height:-webkit-fill-available; }
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: -webkit-fill-available;
-  overflow: hidden;
+  background: var(--bg); color: var(--text); font-family:'Syne', sans-serif;
+  display:flex; flex-direction:column; height:100vh; height:-webkit-fill-available; overflow:hidden;
+  transition: background 0.5s ease, color 0.3s ease;
 }
-body::before {
-  content:'';
-  position:fixed; inset:0;
+::selection { background: var(--accent-mid); }
+
+/* ===== ARKA PLAN ===== */
+#bg-layers { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.aurora { position:absolute; border-radius:50%; filter:blur(90px); opacity:0.34; will-change:transform; transition:background 0.8s ease; }
+.aurora.a1 { width:55vmax; height:55vmax; left:-15vmax; top:-18vmax; background:var(--accent); animation:drift1 26s ease-in-out infinite alternate; }
+.aurora.a2 { width:50vmax; height:50vmax; right:-16vmax; top:10vh; background:var(--accent2); animation:drift2 32s ease-in-out infinite alternate; opacity:0.26; }
+.aurora.a3 { width:42vmax; height:42vmax; left:20vw; bottom:-24vmax; background:color-mix(in srgb, var(--accent) 50%, var(--accent2)); animation:drift3 38s ease-in-out infinite alternate; opacity:0.2; }
+@keyframes drift1 { to { transform:translate(18vmax,12vmax) scale(1.15); } }
+@keyframes drift2 { to { transform:translate(-16vmax,14vmax) scale(0.9); } }
+@keyframes drift3 { to { transform:translate(14vmax,-10vmax) scale(1.2); } }
+.grid-overlay {
+  position:absolute; inset:0;
   background-image:
-    linear-gradient(rgba(0,255,136,0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,136,0.022) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events:none; z-index:0;
+    linear-gradient(color-mix(in srgb, var(--accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 5%, transparent) 1px, transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
+  mask-image:radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
 }
+.noise { position:absolute; inset:0; opacity:0.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#spotlight { position:absolute; inset:0; background:radial-gradient(520px circle at var(--mx) var(--my), color-mix(in srgb, var(--accent) 11%, transparent), transparent 60%); transition:opacity 0.4s; }
+#particles { position:absolute; inset:0; width:100%; height:100%; }
+body.no-fx .aurora { animation:none; opacity:0.18; }
+body.no-fx #particles, body.no-fx #spotlight { display:none; }
+@media (prefers-reduced-motion: reduce) { .aurora { animation:none !important; } * { animation-duration:0.01ms !important; } }
 
-/* ===== HEADER ===== */
-header {
-  position:relative; z-index:20;
-  display:flex; align-items:center; gap:10px;
-  padding: 10px 16px;
-  padding-top: calc(10px + var(--safe-top));
-  border-bottom: 1px solid var(--border);
-  background: rgba(10,10,15,0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  flex-shrink: 0;
+/* ===== EKRANLAR ===== */
+.screen {
+  position:fixed; inset:0; z-index:60; display:none; overflow-y:auto;
+  padding:calc(24px + var(--safe-top)) 20px calc(24px + var(--safe-bottom));
+  background:color-mix(in srgb, var(--bg) 30%, transparent);
+  -webkit-overflow-scrolling:touch;
 }
-.logo { font-size:1.15rem; font-weight:800; letter-spacing:-0.5px; white-space:nowrap; }
-.logo span { color: var(--accent); }
-.model-select {
-  appearance:none;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 5px 26px 5px 9px;
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
-  cursor:pointer; outline:none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b8a'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 7px center;
-  transition: border-color 0.2s;
-  max-width: 160px;
-}
-.model-select:focus { border-color: var(--accent); }
-.header-right { margin-left:auto; display:flex; align-items:center; gap:6px; }
-.token-badge {
-  font-family:'JetBrains Mono',monospace; font-size:0.62rem;
-  color:var(--muted); background:var(--surface2);
-  border:1px solid var(--border); border-radius:6px; padding:3px 8px;
-}
-.icon-btn {
-  background:none; border:1px solid var(--border); border-radius:8px;
-  width:30px; height:30px; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; color:var(--muted); font-size:0.85rem; transition:all 0.15s;
-  flex-shrink:0;
-}
-.icon-btn:hover, .icon-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-.status-dot {
-  width:7px; height:7px; border-radius:50%; background:var(--muted);
-  display:inline-block; transition:all 0.3s; flex-shrink:0;
-}
-.status-dot.active { background:var(--accent); box-shadow:0 0 8px var(--accent); animation: pulse-dot 2s infinite; }
-@keyframes pulse-dot {
-  0%,100% { box-shadow:0 0 6px var(--accent); }
-  50% { box-shadow:0 0 14px var(--accent); }
-}
+.screen.active { display:flex; flex-direction:column; animation:fade 0.5s ease; }
+.screen > * { margin:auto; }
+#landing { background:transparent; }
+#landing.active { display:block; }
+.back-link { display:block; margin:14px auto 0; background:none; border:none; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.7rem; cursor:pointer; }
+.back-link:hover { color:var(--accent); }
 
-/* ===== SETUP SCREEN ===== */
-#setup-screen {
-  position:relative; z-index:10; flex:1;
-  display:none; align-items:center; justify-content:center; padding:24px 20px;
-  overflow-y: auto;
+/* ===== TANITIM ===== */
+#landing > .land-wrap { margin:0 auto; width:100%; max-width:980px; padding:10px 0 40px; text-align:center; }
+.land-badge { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--accent); background:var(--accent-dim); border:1px solid var(--accent-mid); border-radius:20px; padding:5px 14px; animation:rise 0.8s both; }
+.land-title {
+  font-size:clamp(3.4rem, 14vw, 8rem); font-weight:800; letter-spacing:-4px; line-height:0.95; margin-top:18px;
+  background:linear-gradient(90deg, var(--text), var(--accent), var(--accent2), var(--text)); background-size:300% 100%;
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  animation:rise 0.9s 0.1s both, shimmer 8s linear infinite;
 }
-#setup-screen.visible { display:flex; }
+.land-typing { font-family:'JetBrains Mono',monospace; font-size:clamp(0.85rem,2.4vw,1.1rem); color:var(--accent2); margin-top:16px; min-height:1.6em; animation:rise 0.9s 0.3s both; }
+.caret { display:inline-block; width:2px; height:1em; vertical-align:middle; background:var(--accent2); margin-left:2px; animation:blink 0.7s step-end infinite; }
+.land-sub { font-size:0.95rem; line-height:1.7; color:var(--muted); max-width:520px; margin:16px auto 0; animation:rise 0.9s 0.45s both; }
+.land-cta {
+  margin-top:26px; position:relative; overflow:hidden; background:var(--grad); color:var(--on-accent); border:none; border-radius:16px;
+  padding:16px 34px; font-family:'Syne',sans-serif; font-weight:800; font-size:1.05rem; cursor:pointer;
+  box-shadow:0 10px 40px var(--accent-glow); animation:rise 0.9s 0.6s both, ctaPulse 2.6s ease-in-out 1.5s infinite; transition:transform 0.2s;
+}
+.land-cta:hover { transform:translateY(-3px) scale(1.03); }
+.land-cta:active { transform:scale(0.97); }
+.land-cta::after { content:''; position:absolute; top:0; left:-75%; width:50%; height:100%; background:linear-gradient(120deg, transparent, #fff6, transparent); animation:sweep 3.2s ease-in-out infinite; }
+@keyframes ctaPulse { 0%,100% { box-shadow:0 10px 40px var(--accent-glow); } 50% { box-shadow:0 14px 56px var(--accent-glow), 0 0 0 8px var(--accent-dim); } }
+@keyframes sweep { 0%,60% { left:-75%; } 100% { left:130%; } }
+@keyframes rise { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+.rv { opacity:0; transform:translateY(34px); transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--d,0s), transform .8s cubic-bezier(.16,1,.3,1) var(--d,0s); }
+.rv.in { opacity:1; transform:none; }
+
+.land-preview { margin:40px auto 0; max-width:520px; text-align:left; background:var(--glass2); border:1px solid var(--border); border-radius:20px; padding:18px; backdrop-filter:blur(16px); box-shadow:0 30px 80px rgba(0,0,0,0.35); animation:rise 1s 0.75s both; }
+.pv-row { display:flex; gap:10px; margin-bottom:12px; font-size:0.8rem; line-height:1.6; animation:rise 0.6s both; }
+.pv-row:nth-child(2) { animation-delay:1.1s; } .pv-row:nth-child(3) { animation-delay:1.6s; }
+.pv-av { width:26px; height:26px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.75rem; }
+.pv-user .pv-av { background:var(--accent2-dim); } .pv-bot .pv-av { background:var(--grad); color:var(--on-accent); font-weight:800; }
+.pv-think { flex:1; border:1px solid var(--accent-mid); border-radius:12px; background:var(--accent-dim); padding:9px 12px; font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--accent); }
+.pv-think small { display:block; color:var(--muted); margin-top:4px; }
+
+.land-features { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:44px; }
+.feat { background:var(--glass2); border:1px solid var(--border); border-radius:16px; padding:18px 14px; text-align:left; backdrop-filter:blur(10px); transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s; }
+.feat:hover { border-color:var(--accent); box-shadow:0 14px 34px var(--accent-dim); }
+.feat .fi { font-size:1.5rem; display:block; margin-bottom:8px; animation:float 3.5s ease-in-out infinite; }
+.feat h4 { font-size:0.86rem; font-weight:800; margin-bottom:4px; }
+.feat p { font-size:0.7rem; color:var(--muted); line-height:1.55; font-family:'JetBrains Mono',monospace; }
+
+.marquee { overflow:hidden; margin:56px -20px 0; padding:14px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--glass); }
+.marquee-track { display:flex; width:max-content; animation:marq 22s linear infinite; font-family:'JetBrains Mono',monospace; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:.14em; }
+.marquee-track span { white-space:nowrap; padding-right:34px; }
+.marquee-track span::after { content:'✦'; margin-left:34px; color:var(--accent); }
+@keyframes marq { to { transform:translateX(-50%); } }
+
+.section-title { font-size:clamp(1.6rem,4vw,2.4rem); font-weight:800; letter-spacing:-1px; margin:90px 0 10px; background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.section-sub { color:var(--muted); font-size:.9rem; line-height:1.7; max-width:560px; margin:0 auto 30px; }
+
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; text-align:left; }
+.step { background:var(--glass2); border:1px solid var(--border); border-radius:18px; padding:22px; position:relative; overflow:hidden; transition:transform .3s, border-color .3s; }
+.step:hover { transform:translateY(-4px); border-color:var(--accent); }
+.step .num { font-family:'JetBrains Mono',monospace; font-size:2.6rem; font-weight:800; color:var(--accent-mid); line-height:1; }
+.step h4 { margin:12px 0 6px; font-size:1rem; }
+.step p { font-size:.78rem; color:var(--muted); line-height:1.6; font-family:'JetBrains Mono',monospace; }
+.step::after { content:''; position:absolute; right:-40px; bottom:-40px; width:140px; height:140px; border-radius:50%; background:var(--accent-dim); filter:blur(20px); }
+
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+.stat { background:var(--glass2); border:1px solid var(--border); border-radius:16px; padding:20px 10px; }
+.stat b { display:block; font-size:2.2rem; font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.stat span { font-size:.7rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+
+.chips { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin-top:6px; }
+.chip { font-family:'JetBrains Mono',monospace; font-size:.7rem; padding:7px 13px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--text); transition:all .25s; }
+.chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-2px); }
+.chip.max { border-color:var(--accent-mid); color:var(--accent2); }
+
+.faq { text-align:left; max-width:700px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+.faq details { background:var(--glass2); border:1px solid var(--border); border-radius:14px; padding:14px 18px; transition:border-color .25s; }
+.faq details[open] { border-color:var(--accent-mid); }
+.faq summary { cursor:pointer; font-weight:700; font-size:.9rem; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.faq summary::-webkit-details-marker { display:none; }
+.faq summary::after { content:'+'; color:var(--accent); font-size:1.3rem; transition:transform .25s; }
+.faq details[open] summary::after { transform:rotate(45deg); }
+.faq p { margin-top:10px; font-size:.8rem; line-height:1.65; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+
+.final-cta { margin-top:90px; text-align:center; padding:44px 20px; border-radius:24px; background:var(--glass2); border:1px solid var(--accent-mid); position:relative; overflow:hidden; }
+.final-cta::before { content:''; position:absolute; inset:-40%; background:conic-gradient(from 0deg, transparent, var(--accent-dim), transparent 30%); animation:spin 10s linear infinite; }
+.final-cta > * { position:relative; }
+.final-cta h3 { font-size:clamp(1.5rem,4vw,2.2rem); font-weight:800; margin-bottom:8px; }
+.final-cta p { color:var(--muted); font-size:.88rem; margin-bottom:22px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.land-foot2 { margin:40px 0 0; text-align:center; font-family:'JetBrains Mono',monospace; font-size:.62rem; color:var(--muted); }
+
+/* ===== GİRİŞ KARTI ===== */
 .setup-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:20px; padding:36px 32px; max-width:440px; width:100%; text-align:center;
-  animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1);
+  position:relative; background:var(--glass2); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--border); border-radius:24px; padding:38px 32px; max-width:450px; width:100%; text-align:center;
+  animation:cardIn 0.5s cubic-bezier(0.16,1,0.3,1); box-shadow:0 30px 80px rgba(0,0,0,0.35), 0 0 60px var(--accent-dim);
 }
-@keyframes cardIn {
-  from { opacity:0; transform:translateY(20px) scale(0.97); }
-  to { opacity:1; transform:translateY(0) scale(1); }
+.setup-card::before {
+  content:''; position:absolute; inset:-1px; border-radius:25px; padding:1px;
+  background:linear-gradient(135deg, var(--accent), transparent 40%, transparent 60%, var(--accent2));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask-composite:exclude; pointer-events:none; opacity:0.8;
 }
-.setup-icon { font-size:2.5rem; margin-bottom:14px; display:block; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
-.setup-card h2 { font-size:1.5rem; font-weight:800; margin-bottom:8px; }
+@keyframes cardIn { from { opacity:0; transform:translateY(24px) scale(0.96); } to { opacity:1; transform:none; } }
+@keyframes fade { from { opacity:0; } to { opacity:1; } }
+.setup-icon { font-size:2.6rem; margin-bottom:14px; display:block; animation:float 3s ease-in-out infinite; filter:drop-shadow(0 0 16px var(--accent-glow)); }
+@keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-7px); } }
+.setup-card h2 { font-size:1.7rem; font-weight:800; margin-bottom:8px; background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 .setup-card p { color:var(--muted); font-size:0.84rem; margin-bottom:22px; line-height:1.65; }
 .field-label { font-size:0.67rem; color:var(--muted); text-align:left; margin-bottom:5px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.06em; }
-.key-wrap { position:relative; margin-bottom:12px; }
-.key-wrap input {
-  width:100%; background:var(--surface2); border:1px solid var(--border);
-  border-radius:10px; padding:12px 44px 12px 13px; color:var(--text);
-  font-family:'JetBrains Mono',monospace; font-size:0.82rem; outline:none; transition:border-color 0.2s;
-  -webkit-appearance: none;
+.key-wrap, .url-wrap { position:relative; margin-bottom:12px; }
+.key-wrap input, .url-wrap input {
+  width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+  padding:12px 13px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.8rem; outline:none; transition:all 0.2s; -webkit-appearance:none;
 }
-.key-wrap input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,0.08); }
-.eye-btn {
-  position:absolute; right:11px; top:50%; transform:translateY(-50%);
-  background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.95rem; padding:6px;
-}
-.url-wrap { position:relative; margin-bottom:12px; }
-.url-wrap input {
-  width:100%; background:var(--surface2); border:1px solid var(--border);
-  border-radius:10px; padding:12px 13px; color:var(--text);
-  font-family:'JetBrains Mono',monospace; font-size:0.75rem; outline:none; transition:border-color 0.2s;
-  -webkit-appearance: none;
-}
-.url-wrap input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,0.08); }
+.key-wrap input { padding-right:44px; }
+.key-wrap input:focus, .url-wrap input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim); }
+.shake { animation:shake 0.45s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-9px)} 40%{transform:translateX(9px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+.login-err { min-height:18px; color:#fca5a5; font-size:0.74rem; font-family:'JetBrains Mono',monospace; margin:-4px 0 10px; text-align:left; }
+.eye-btn { position:absolute; right:11px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.95rem; padding:6px; }
 .btn-primary {
-  width:100%; background:var(--accent); color:#000; border:none; border-radius:10px;
-  padding:13px; font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700;
-  cursor:pointer; transition:all 0.2s; letter-spacing:0.02em;
-  -webkit-appearance:none;
+  width:100%; background:var(--grad); color:var(--on-accent); border:none; border-radius:12px; padding:13px;
+  font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:800; cursor:pointer; transition:all 0.2s; letter-spacing:0.02em; box-shadow:0 8px 28px var(--accent-dim);
 }
-.btn-primary:active { opacity:0.82; transform:scale(0.98); }
-.setup-note {
-  margin-top:14px; background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.18);
-  border-radius:8px; padding:10px 12px; font-size:0.72rem; color:var(--yellow); text-align:left; line-height:1.55;
-}
-.setup-cloudflare {
-  margin-top:14px; background:rgba(0,163,230,0.08); border:1px solid rgba(0,163,230,0.25);
-  border-radius:8px; padding:12px; font-size:0.68rem; color:#64b5f6; text-align:left; line-height:1.6; font-family:'JetBrains Mono',monospace;
-}
-.setup-cloudflare strong { color:#42a5f5; }
-.setup-divider {
-  display:flex; align-items:center; gap:10px; margin:14px 0;
-  font-size:0.67rem; color:var(--muted); font-family:'JetBrains Mono',monospace;
-}
-.setup-divider::before,.setup-divider::after {
-  content:''; flex:1; height:1px; background:var(--border);
-}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 34px var(--accent-mid); }
+.btn-primary:active { opacity:0.85; transform:scale(0.98); }
+.btn-ghost { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:12px; padding:11px; font-family:'Syne',sans-serif; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
 
-/* ===== APP SCREEN ===== */
+/* ===== KINGO KARŞILAMA ===== */
+.kingo-welcome { position:fixed; inset:0; z-index:400; display:flex; align-items:center; justify-content:center; text-align:center; background:color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter:blur(10px); animation:fade 0.3s; }
+.kingo-welcome div { font-size:clamp(1.4rem,4vw,2.2rem); font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:cardIn 0.8s cubic-bezier(0.16,1,0.3,1); padding:20px; }
+
+/* ===== HEADER ===== */
 #app-screen { display:none; position:relative; z-index:10; flex:1; flex-direction:column; min-height:0; }
 #app-screen.visible { display:flex; }
+header {
+  position:relative; z-index:20; display:flex; align-items:center; gap:10px;
+  padding:10px 16px; padding-top:calc(10px + var(--safe-top)); border-bottom:1px solid var(--border); background:var(--glass);
+  backdrop-filter:blur(22px) saturate(1.4); -webkit-backdrop-filter:blur(22px) saturate(1.4); flex-shrink:0;
+}
+header::after { content:''; position:absolute; left:0; right:0; bottom:-1px; height:1px; background:linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent); opacity:0.55; }
+.logo { font-size:1.3rem; font-weight:800; letter-spacing:-0.5px; white-space:nowrap; display:flex; align-items:center; gap:8px; }
+.logo-mark { width:28px; height:28px; border-radius:9px; background:var(--grad); display:flex; align-items:center; justify-content:center; color:var(--on-accent); font-size:0.9rem; font-weight:800; box-shadow:0 0 18px var(--accent-glow); animation:logoPulse 3.5s ease-in-out infinite; }
+@keyframes logoPulse { 0%,100% { box-shadow:0 0 12px var(--accent-glow); } 50% { box-shadow:0 0 26px var(--accent-glow), 0 0 4px var(--accent2); } }
+.logo-text { background:linear-gradient(90deg, var(--text), var(--accent), var(--accent2), var(--text)); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:shimmer 7s linear infinite; }
+@keyframes shimmer { to { background-position:300% 0; } }
+.model-select {
+  appearance:none; background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+  padding:6px 28px 6px 10px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.68rem; cursor:pointer; outline:none; max-width:190px; transition:all 0.2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8aa8'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 8px center;
+}
+.model-select:hover, .model-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim); }
+.model-select option, .model-select optgroup { background:var(--surface); color:var(--text); }
+.model-select option:disabled { color:var(--muted); }
+.header-right { margin-left:auto; display:flex; align-items:center; gap:7px; }
+.token-badge { font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 10px; }
+.plan-badge { font-family:'JetBrains Mono',monospace; font-size:0.66rem; cursor:pointer; border-radius:20px; padding:5px 11px; background:var(--surface2); border:1px solid var(--border); color:var(--text); transition:all 0.2s; white-space:nowrap; }
+.plan-badge:hover { border-color:var(--accent); color:var(--accent); }
+body[data-plan="kingo"] .plan-badge { background:var(--grad); color:var(--on-accent); border-color:transparent; font-weight:700; box-shadow:0 0 18px var(--accent-glow); }
+.icon-btn { background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); font-size:0.88rem; transition:all 0.18s; flex-shrink:0; }
+.icon-btn:hover, .icon-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); transform:translateY(-1px); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); display:inline-block; transition:all 0.3s; flex-shrink:0; }
+.status-dot.active { background:var(--accent); box-shadow:0 0 10px var(--accent); animation:pulse-dot 2s infinite; }
+@keyframes pulse-dot { 0%,100% { box-shadow:0 0 6px var(--accent); } 50% { box-shadow:0 0 16px var(--accent); } }
+
 .layout { display:flex; flex:1; min-height:0; }
 
-/* ===== SIDEBAR (Desktop) ===== */
-.sidebar {
-  width:200px; flex-shrink:0;
-  background:var(--surface); border-right:1px solid var(--border);
-  display:flex; flex-direction:column; overflow:hidden;
-  transition:width 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-.sidebar.hidden { width:0; }
-.sidebar-inner { padding:14px; display:flex; flex-direction:column; gap:5px; min-width:200px; overflow-y:auto; }
-.sidebar-title { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; font-family:'JetBrains Mono',monospace; margin-bottom:2px; padding:0 2px; }
-.quick-btn {
-  background:transparent; border:1px solid transparent; border-radius:8px;
-  padding:8px 10px; color:var(--muted); font-size:0.76rem; cursor:pointer;
-  text-align:left; transition:all 0.15s; width:100%; display:flex; align-items:center; gap:8px;
-  font-family:'Syne',sans-serif;
-}
-.quick-btn:hover, .quick-btn:active { border-color:var(--border); color:var(--text); background:var(--surface2); }
-.quick-btn .qi { font-size:0.9rem; flex-shrink:0; }
-.sidebar-divider { height:1px; background:var(--border); margin:5px 0; }
+/* ===== SIDEBAR ===== */
+.sidebar { width:236px; flex-shrink:0; background:var(--glass); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; transition:width 0.28s cubic-bezier(0.4,0,0.2,1); }
+.sidebar.hidden { width:0; border-right-color:transparent; }
+.sidebar-inner { padding:16px 14px; display:flex; flex-direction:column; gap:6px; min-width:236px; overflow-y:auto; }
+.sidebar-title { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; font-family:'JetBrains Mono',monospace; margin:4px 0; padding:0 2px; display:flex; align-items:center; justify-content:space-between; }
+.sidebar-title b { color:var(--accent); font-weight:500; }
+.quick-btn { background:transparent; border:1px solid transparent; border-radius:10px; padding:9px 11px; color:var(--muted); font-size:0.78rem; cursor:pointer; text-align:left; transition:all 0.18s; width:100%; display:flex; align-items:center; gap:9px; font-family:'Syne',sans-serif; }
+.quick-btn:hover { border-color:var(--border); color:var(--text); background:var(--surface2); transform:translateX(2px); }
+.quick-btn .qi { font-size:0.95rem; flex-shrink:0; }
+.quick-btn.primary { border-color:var(--accent-mid); color:var(--accent); background:var(--accent-dim); }
+.sidebar-divider { height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent); margin:8px 0; }
+.swatches { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; padding:4px 2px 6px; }
+.swatch { aspect-ratio:1; border-radius:50%; border:2px solid var(--border); cursor:pointer; transition:all 0.18s; position:relative; padding:0; }
+.swatch:hover { transform:scale(1.2); z-index:2; box-shadow:0 0 14px var(--accent-glow); }
+.swatch.selected { border-color:var(--text); box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--accent); transform:scale(1.05); }
 
-/* ===== THEME SWITCH ===== */
-.theme-switch-row {
-  display:flex; align-items:center; justify-content:space-between; gap:6px;
-  padding:6px 2px 10px;
-}
-.theme-switch-label { font-size:0.72rem; color:var(--muted); white-space:nowrap; }
-.theme-switch {
-  position:relative; display:inline-block; width:40px; height:22px; flex-shrink:0;
-}
-.theme-switch input { opacity:0; width:0; height:0; }
-.theme-switch-slider {
-  position:absolute; cursor:pointer; inset:0;
-  background:var(--surface2); border:1px solid var(--border);
-  border-radius:22px; transition:background 0.2s, border-color 0.2s;
-}
-.theme-switch-slider::before {
-  content:''; position:absolute; height:14px; width:14px; left:3px; bottom:3px;
-  background:var(--accent); border-radius:50%; transition:transform 0.2s;
-}
-.theme-switch input:checked + .theme-switch-slider { border-color:var(--accent); }
-.theme-switch input:checked + .theme-switch-slider::before { transform:translateX(18px); }
-
-/* ===== MAIN ===== */
-.main { flex:1; display:flex; flex-direction:column; min-height:0; min-width:0; }
-
-/* ===== TOOLBAR ===== */
-.toolbar {
-  display:flex; align-items:center; gap:5px; padding:7px 12px;
-  border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto;
-  background:var(--surface); scrollbar-width:none;
-}
-.toolbar::-webkit-scrollbar { display:none; }
-.lang-pill {
-  background:var(--surface2); border:1px solid var(--border); border-radius:20px;
-  padding:4px 10px; color:var(--muted); font-family:'JetBrains Mono',monospace;
-  font-size:0.68rem; cursor:pointer; transition:all 0.15s; white-space:nowrap; flex-shrink:0;
-  -webkit-appearance:none;
-}
-.lang-pill:hover, .lang-pill.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-.lang-pill:active { transform:scale(0.96); }
-
-/* ===== CHAT ===== */
-#chat {
-  flex:1; overflow-y:auto; padding:14px 16px;
-  display:flex; flex-direction:column; gap:14px;
-  scroll-behavior:smooth; min-height:0;
-  -webkit-overflow-scrolling: touch;
-}
-#chat::-webkit-scrollbar { width:3px; }
+/* ===== MAIN / CHAT ===== */
+.main { flex:1; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; }
+.chat-wrap { position:relative; flex:1; min-height:0; display:flex; }
+#chat { flex:1; overflow-y:auto; padding:18px 18px 10px; display:flex; flex-direction:column; gap:16px; scroll-behavior:smooth; min-height:0; -webkit-overflow-scrolling:touch; }
+#chat::-webkit-scrollbar { width:4px; }
 #chat::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+#chat::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+#scroll-btn { position:absolute; right:18px; bottom:14px; z-index:4; width:38px; height:38px; border-radius:50%; background:var(--grad); color:var(--on-accent); border:none; cursor:pointer; font-size:1rem; font-weight:800; box-shadow:0 6px 22px var(--accent-mid); opacity:0; transform:translateY(10px) scale(0.8); pointer-events:none; transition:all 0.25s; }
+#scroll-btn.show { opacity:1; transform:none; pointer-events:auto; }
 
-/* ===== EMPTY STATE ===== */
-.empty-state {
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  text-align:center; gap:8px; padding:30px 20px;
-}
-.empty-glyph {
-  font-size:2.8rem; opacity:0.15; font-family:'JetBrains Mono',monospace;
-  font-weight:700; color:var(--accent); letter-spacing:-4px;
-  animation: glitch 4s infinite;
-}
-@keyframes glitch {
-  0%,90%,100% { text-shadow:none; opacity:0.15; }
-  92% { text-shadow:2px 0 var(--purple); opacity:0.25; }
-  94% { text-shadow:-2px 0 var(--accent); opacity:0.2; }
-  96% { text-shadow:none; opacity:0.15; }
-}
-.empty-state h3 { font-size:0.95rem; font-weight:700; color:var(--text); opacity:0.4; }
-.empty-state p { font-size:0.77rem; line-height:1.65; max-width:250px; opacity:0.4; }
-.suggestions { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px; }
-.sug-btn {
-  background:var(--surface2); border:1px solid var(--border); border-radius:8px;
-  padding:6px 12px; font-size:0.73rem; color:var(--muted); cursor:pointer;
-  transition:all 0.15s; font-family:'Syne',sans-serif;
-}
-.sug-btn:hover, .sug-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); transform:translateY(-1px); }
+.empty-state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; padding:20px; max-width:640px; margin:0 auto; width:100%; }
+.hero-orb { width:84px; height:84px; border-radius:50%; margin-bottom:6px; position:relative; background:radial-gradient(circle at 30% 28%, #fff8, transparent 40%), var(--grad); box-shadow:0 0 50px var(--accent-glow), inset 0 -10px 24px rgba(0,0,0,0.3); animation:orb 5s ease-in-out infinite; }
+.hero-orb::before, .hero-orb::after { content:''; position:absolute; inset:-10px; border-radius:50%; border:1px solid var(--accent-mid); animation:ring 3.5s ease-out infinite; }
+.hero-orb::after { animation-delay:1.7s; }
+@keyframes orb { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-8px) scale(1.04); } }
+@keyframes ring { from { transform:scale(0.9); opacity:0.9; } to { transform:scale(1.9); opacity:0; } }
+.hero-title { font-size:clamp(2rem,6vw,3.1rem); font-weight:800; letter-spacing:-1.5px; line-height:1.05; background:linear-gradient(90deg, var(--text), var(--accent), var(--accent2), var(--text)); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 8s linear infinite; }
+.hero-sub { font-size:0.86rem; line-height:1.65; max-width:380px; color:var(--muted); }
+.hero-model { font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--accent); background:var(--accent-dim); border:1px solid var(--accent-mid); border-radius:20px; padding:4px 12px; }
+.suggestions { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px; width:100%; }
+.sug-btn { background:var(--glass2); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:left; font-size:0.78rem; color:var(--text); cursor:pointer; transition:all 0.22s; font-family:'Syne',sans-serif; display:flex; flex-direction:column; gap:5px; backdrop-filter:blur(10px); position:relative; overflow:hidden; }
+.sug-btn .si-ic { font-size:1.2rem; }
+.sug-btn .si-desc { font-size:0.66rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+.sug-btn::after { content:''; position:absolute; inset:0; background:var(--grad); opacity:0; transition:opacity 0.25s; }
+.sug-btn > * { position:relative; z-index:1; }
+.sug-btn:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 12px 30px var(--accent-dim); }
+.sug-btn:hover::after { opacity:0.08; }
 
-/* ===== MESSAGES ===== */
-.msg {
-  display:flex; gap:10px;
-  animation: msgIn 0.28s cubic-bezier(0.16,1,0.3,1);
-}
-@keyframes msgIn {
-  from { opacity:0; transform:translateY(8px); }
-  to { opacity:1; transform:translateY(0); }
-}
-.msg-avatar {
-  width:30px; height:30px; border-radius:8px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:0.8rem; flex-shrink:0; margin-top:1px;
-}
-.msg.user .msg-avatar { background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.25); }
-.msg.assistant .msg-avatar { background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.18); }
+/* ===== MESAJLAR ===== */
+.msg { display:flex; gap:10px; width:100%; max-width:880px; margin:0 auto; animation:msgIn 0.35s cubic-bezier(0.16,1,0.3,1); }
+@keyframes msgIn { from { opacity:0; transform:translateY(12px) scale(0.99); } to { opacity:1; transform:none; } }
+.msg-avatar { width:32px; height:32px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; margin-top:2px; }
+.msg.user { flex-direction:row-reverse; }
+.msg.user .msg-avatar { background:var(--accent2-dim); border:1px solid color-mix(in srgb, var(--accent2) 35%, transparent); }
+.msg.assistant .msg-avatar { background:var(--grad); color:var(--on-accent); font-weight:800; box-shadow:0 0 16px var(--accent-mid); }
 .msg-body { flex:1; min-width:0; }
+.msg.user .msg-body { flex:0 1 auto; max-width:86%; display:flex; flex-direction:column; align-items:flex-end; }
 .msg-meta { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
-.msg-label { font-size:0.65rem; color:var(--muted); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.07em; }
-.msg-time { font-size:0.6rem; color:var(--muted); opacity:0.6; font-family:'JetBrains Mono',monospace; }
+.msg.user .msg-meta { flex-direction:row-reverse; }
+.msg-label { font-size:0.64rem; color:var(--muted); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.08em; }
+.msg-time { font-size:0.6rem; color:var(--muted); opacity:0.65; font-family:'JetBrains Mono',monospace; }
 .msg-actions { margin-left:auto; display:flex; gap:4px; opacity:0; transition:opacity 0.15s; }
 .msg:hover .msg-actions { opacity:1; }
-.msg-act-btn {
-  background:none; border:1px solid transparent; border-radius:5px;
-  padding:2px 7px; color:var(--muted); font-size:0.66rem; cursor:pointer; transition:all 0.15s;
-  font-family:'JetBrains Mono',monospace;
-}
-.msg-act-btn:hover, .msg-act-btn:active { border-color:var(--border); color:var(--text); background:var(--surface2); }
-
-/* ===== MARKDOWN ===== */
-.msg-content { font-size:0.86rem; line-height:1.72; word-break:break-word; }
-.msg.user .msg-content { color:#c4b5fd; }
-.msg-content p { margin-bottom:10px; }
-.msg-content p:last-child { margin-bottom:0; }
-.msg-content h1,.msg-content h2,.msg-content h3 { font-weight:700; margin:14px 0 6px; color:var(--text); }
-.msg-content h1 { font-size:1.05rem; }
-.msg-content h2 { font-size:0.97rem; }
-.msg-content h3 { font-size:0.9rem; }
-.msg-content ul,.msg-content ol { padding-left:18px; margin-bottom:10px; }
+.msg-act-btn { background:none; border:1px solid transparent; border-radius:6px; padding:2px 8px; color:var(--muted); font-size:0.66rem; cursor:pointer; transition:all 0.15s; font-family:'JetBrains Mono',monospace; }
+.msg-act-btn:hover { border-color:var(--border); color:var(--text); background:var(--surface2); }
+.msg-content { font-size:0.88rem; line-height:1.75; word-break:break-word; }
+.msg.assistant .msg-content { background:var(--glass2); border:1px solid var(--border); border-left:2px solid var(--accent); border-radius:4px 18px 18px 18px; padding:12px 16px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,0.12); }
+.msg.user .msg-content { background:linear-gradient(135deg, var(--accent-dim), var(--accent2-dim)); border:1px solid var(--accent-mid); border-radius:18px 4px 18px 18px; padding:10px 15px; color:var(--text); }
+.msg-content p { margin-bottom:10px; } .msg-content p:last-child { margin-bottom:0; }
+.msg-content h1,.msg-content h2,.msg-content h3 { font-weight:800; margin:14px 0 6px; color:var(--text); }
+.msg-content h1 { font-size:1.1rem; } .msg-content h2 { font-size:1rem; } .msg-content h3 { font-size:0.93rem; }
+.msg-content h1,.msg-content h2 { background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.msg-content ul,.msg-content ol { padding-left:20px; margin-bottom:10px; }
 .msg-content li { margin-bottom:4px; }
-.msg-content a { color:var(--accent); text-decoration:none; }
-.msg-content a:hover { text-decoration:underline; }
-.msg-content blockquote { border-left:3px solid var(--accent); padding-left:12px; color:var(--muted); margin:8px 0; font-style:italic; }
-.msg-content strong { color:var(--text); font-weight:700; }
-.msg-content em { color:#a8b4d8; }
+.msg-content li::marker { color:var(--accent); }
+.msg-content a { color:var(--accent); text-decoration:none; border-bottom:1px dashed var(--accent-mid); }
+.msg-content blockquote { border-left:3px solid var(--accent2); padding:4px 12px; color:var(--muted); margin:8px 0; font-style:italic; background:var(--accent2-dim); border-radius:0 8px 8px 0; }
+.msg-content strong { color:var(--text); font-weight:800; }
+.msg-content em { color:color-mix(in srgb, var(--text) 75%, var(--accent2)); }
+.msg-content hr { border:none; height:1px; background:linear-gradient(90deg, transparent, var(--accent), transparent); margin:14px 0; opacity:0.5; }
 .msg-content table { border-collapse:collapse; width:100%; margin:10px 0; font-size:0.8rem; display:block; overflow-x:auto; }
-.msg-content th { background:var(--surface2); border:1px solid var(--border); padding:7px 10px; text-align:left; font-family:'JetBrains Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; }
+.msg-content th { background:var(--surface2); border:1px solid var(--border); padding:7px 10px; text-align:left; font-family:'JetBrains Mono',monospace; font-size:0.7rem; text-transform:uppercase; color:var(--accent); }
 .msg-content td { border:1px solid var(--border); padding:6px 10px; }
-.msg-content tr:nth-child(even) td { background:rgba(255,255,255,0.02); }
-.msg-content code:not(pre code) {
-  background:#0d0d14; border:1px solid var(--border); border-radius:5px;
-  padding:1px 6px; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--accent);
-}
-.msg-content pre {
-  background:#0d0d14; border:1px solid var(--border); border-radius:10px;
-  margin:10px 0; overflow:hidden; position:relative;
-}
-.code-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:6px 12px; border-bottom:1px solid var(--border);
-  background:rgba(255,255,255,0.025);
-}
-.code-lang { font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; }
+.msg-content code:not(pre code) { background:var(--code-bg); border:1px solid var(--border); border-radius:6px; padding:1px 7px; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--accent); }
+.msg-content pre { background:var(--code-bg); border:1px solid color-mix(in srgb, var(--accent) 20%, #2a2a3d); border-radius:12px; margin:12px 0; overflow:hidden; position:relative; box-shadow:0 6px 24px rgba(0,0,0,0.25); }
+.code-header { display:flex; align-items:center; justify-content:space-between; padding:7px 12px; border-bottom:1px solid #22222f; background:rgba(255,255,255,0.03); }
+.code-header::before { content:''; width:9px; height:9px; border-radius:50%; background:#ff5f57; box-shadow:15px 0 #febc2e, 30px 0 #28c840; margin-right:36px; flex-shrink:0; }
+.code-lang { font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-right:auto; }
 .code-actions { display:flex; gap:6px; }
-.copy-code-btn {
-  background:none; border:1px solid var(--border); border-radius:5px;
-  padding:2px 10px; color:var(--muted); font-size:0.66rem; cursor:pointer;
-  font-family:'JetBrains Mono',monospace; transition:all 0.15s;
-}
-.copy-code-btn:hover,.copy-code-btn:active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-
-/* ===== MATH (KaTeX) ===== */
-.katex-math-block {
-  display:block; margin:12px 0; padding:10px 4px;
-  overflow-x:auto; overflow-y:hidden; text-align:center;
-}
-.katex-math-inline { padding:0 1px; }
+.copy-code-btn { background:none; border:1px solid #2a2a3d; border-radius:6px; padding:2px 10px; color:#8a8aa8; font-size:0.66rem; cursor:pointer; font-family:'JetBrains Mono',monospace; transition:all 0.15s; }
+.copy-code-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.msg-content pre code { display:block; padding:12px 14px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:0.78rem; line-height:1.65; background:transparent !important; }
+.katex-math-block { display:block; margin:12px 0; padding:10px 4px; overflow-x:auto; overflow-y:hidden; text-align:center; }
 .msg-content .katex { color:var(--text); font-size:1.05em; }
 .msg-content .katex-display { margin:0; }
-.msg-content pre code {
-  display:block; padding:12px 14px; overflow-x:auto;
-  font-family:'JetBrains Mono',monospace; font-size:0.78rem; line-height:1.65;
-  background:transparent !important;
-}
-.msg-content pre code::-webkit-scrollbar { height:3px; }
-.msg-content pre code::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-
-/* ===== STREAMING CURSOR ===== */
-.stream-cursor::after {
-  content:'▋'; color:var(--accent);
-  animation: blink 0.7s step-end infinite;
-}
+.stream-cursor::after { content:'▋'; color:var(--accent); animation:blink 0.7s step-end infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-/* ===== TYPING ===== */
+/* ===== DÜŞÜNME KUTUSU ===== */
+.think-box { margin-bottom:10px; border:1px solid var(--accent-mid); border-radius:12px; background:var(--accent-dim); overflow:hidden; animation:rise 0.4s both; }
+.think-box[hidden] { display:none; }
+.think-box:not(.done) { animation:thinkGlow 2.4s ease-in-out infinite; }
+@keyframes thinkGlow { 0%,100% { box-shadow:0 0 0 0 var(--accent-dim); } 50% { box-shadow:0 0 22px 2px var(--accent-dim); } }
+.think-head { width:100%; display:flex; align-items:center; gap:8px; background:none; border:none; color:var(--text); padding:9px 12px; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:0.72rem; text-align:left; }
+.think-ic { font-size:0.95rem; animation:float 2.4s ease-in-out infinite; }
+.think-title { flex:1; color:var(--accent); font-weight:500; }
+.think-state { color:var(--muted); font-size:0.6rem; text-transform:uppercase; letter-spacing:0.08em; }
+.think-box:not(.done) .think-state::after { content:''; animation:dots 1.5s steps(3,end) infinite; }
+.think-caret { color:var(--muted); transition:transform 0.25s; font-size:0.7rem; }
+.think-box.collapsed .think-caret { transform:rotate(-90deg); }
+.think-box.collapsed .think-steps { display:none; }
+.think-steps { list-style:none; padding:0 14px 11px 14px; display:flex; flex-direction:column; gap:6px; }
+.think-steps li { position:relative; padding-left:16px; font-size:0.76rem; line-height:1.55; color:var(--muted); font-family:'JetBrains Mono',monospace; animation:rise 0.4s both; }
+.think-steps li::before { content:'◆'; position:absolute; left:0; top:2px; font-size:0.5rem; color:var(--accent2); }
 .typing-dots { display:flex; gap:5px; align-items:center; padding:6px 0; }
-.typing-dots span { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:typing 1.3s ease-in-out infinite; opacity:0.5; }
-.typing-dots span:nth-child(2) { animation-delay:0.2s; }
-.typing-dots span:nth-child(3) { animation-delay:0.4s; }
+.typing-dots span { width:7px; height:7px; background:var(--grad); border-radius:50%; animation:typing 1.3s ease-in-out infinite; opacity:0.5; }
+.typing-dots span:nth-child(2) { animation-delay:0.2s; } .typing-dots span:nth-child(3) { animation-delay:0.4s; }
 @keyframes typing { 0%,60%,100% { transform:translateY(0); opacity:0.5; } 30% { transform:translateY(-6px); opacity:1; } }
-.thinking-wrap { display:flex; flex-direction:column; gap:6px; padding:6px 0; }
-.thinking-label { font-size:0.67rem; color:var(--accent); font-family:'JetBrains Mono',monospace; display:flex; align-items:center; gap:6px; opacity:0.7; animation:thinking-pulse 1.5s ease-in-out infinite; }
-@keyframes thinking-pulse { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
-.thinking-bar { height:2px; background:var(--surface3); border-radius:2px; overflow:hidden; width:160px; }
-.thinking-bar-inner { height:100%; background:linear-gradient(90deg, transparent, var(--accent), transparent); width:60%; animation:thinking-scan 1.5s ease-in-out infinite; }
+.status-line { font-size:0.68rem; color:var(--accent2); font-family:'JetBrains Mono',monospace; display:inline-flex; align-items:center; gap:6px; animation:research-pulse 1.4s ease-in-out infinite; padding:4px 0; }
+@keyframes research-pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+.thinking-bar { height:3px; background:var(--surface3); border-radius:3px; overflow:hidden; width:180px; margin-top:4px; }
+.thinking-bar-inner { height:100%; background:linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent); width:60%; animation:thinking-scan 1.5s ease-in-out infinite; }
 @keyframes thinking-scan { 0% { transform:translateX(-100%); } 100% { transform:translateX(280%); } }
 .search-dots::after { content:''; animation:dots 1.5s steps(3,end) infinite; }
 @keyframes dots { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
-.research-wrap { padding:6px 0; }
-.research-label { font-size:0.68rem; color:var(--purple); font-family:'JetBrains Mono',monospace; display:inline-flex; align-items:center; gap:6px; font-weight:500; letter-spacing:0.04em; opacity:0.85; animation:research-pulse 1.4s ease-in-out infinite; }
-@keyframes research-pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
-.research-dots { display:inline-flex; gap:2px; margin-left:2px; }
-.research-dots::after { content:''; animation:research-dots 1.4s steps(3,end) infinite; display:inline-block; }
-@keyframes research-dots { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
 
-/* ===== INPUT AREA ===== */
-.input-wrap {
-  padding:10px 14px 12px;
-  padding-bottom: calc(12px + var(--safe-bottom));
-  border-top:1px solid var(--border);
-  background:var(--surface); flex-shrink:0;
+/* ===== HAMAMCAN STRIKE ANIMASYONLARI ===== */
+@keyframes strike-drop {
+  0% { top: -20%; transform: translateX(-50%) rotate(180deg); }
+  100% { top: 50%; transform: translateX(-50%) rotate(180deg) scale(0.5); opacity: 0; }
 }
-.input-box {
-  background:var(--surface2); border:1px solid var(--border); border-radius:12px;
-  padding:10px 90px 10px 13px; display:flex; align-items:flex-end; gap:10px;
-  transition:border-color 0.2s, box-shadow 0.2s; position:relative;
+@keyframes strike-flash {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
 }
-.input-box:focus-within { border-color:rgba(0,255,136,0.35); box-shadow:0 0 0 3px rgba(0,255,136,0.06); }
-#user-input {
-  flex:1; background:none; border:none; outline:none; color:var(--text);
-  font-family:'JetBrains Mono',monospace; font-size:0.85rem; line-height:1.6;
-  resize:none; min-height:20px; max-height:120px; overflow-y:auto; padding:0;
-  -webkit-appearance:none;
+@keyframes shake-chat {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
+
+/* ===== HACKER ARAMA ANİMASYONU ===== */
+.hk-box { border:1px solid var(--accent-mid); border-radius:12px; overflow:hidden; background:#02060a; font-family:'JetBrains Mono',monospace; width:min(520px,100%); box-shadow:0 0 30px var(--accent-dim); animation:rise .4s both; transition:opacity .4s; }
+.hk-box.fade { opacity:0; }
+.hk-bar { display:flex; align-items:center; gap:6px; padding:7px 10px; background:rgba(255,255,255,.04); font-size:.65rem; color:var(--muted); }
+.hk-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.hk-canvas { display:block; width:100%; height:110px; }
+.hk-log { padding:8px 12px 10px; font-size:.7rem; color:var(--accent); line-height:1.6; height:118px; overflow:hidden; white-space:pre-wrap; }
+
+/* ===== INPUT ===== */
+.input-wrap { padding:10px 16px 12px; padding-bottom:calc(12px + var(--safe-bottom)); background:linear-gradient(to top, var(--bg) 40%, transparent); flex-shrink:0; position:relative; }
+.input-inner { max-width:880px; margin:0 auto; }
+.input-box { border:1px solid transparent; border-radius:18px; padding:11px 92px 11px 15px; display:flex; align-items:flex-end; gap:10px; position:relative; background:linear-gradient(var(--glass2), var(--glass2)) padding-box, linear-gradient(90deg, var(--border), var(--border)) border-box; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); transition:box-shadow 0.3s; box-shadow:0 10px 40px rgba(0,0,0,0.2); }
+.input-box:focus-within { background:linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(90deg, var(--accent), var(--accent2), var(--accent)) border-box; background-size:100% 100%, 250% 100%; animation:borderflow 4s linear infinite; box-shadow:0 10px 40px rgba(0,0,0,0.25), 0 0 0 4px var(--accent-dim), 0 0 30px var(--accent-dim); }
+@keyframes borderflow { to { background-position:0 0, 250% 0; } }
+#user-input { flex:1; background:none; border:none; outline:none; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.85rem; line-height:1.6; resize:none; min-height:22px; max-height:130px; overflow-y:auto; padding:0; -webkit-appearance:none; }
 #user-input::placeholder { color:var(--muted); }
-.input-btns {
-  position:absolute; right:9px; bottom:9px;
-  display:flex; gap:6px; align-items:center;
-}
-.send-btn {
-  background:var(--accent); border:none; border-radius:8px;
-  width:32px; height:32px; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition:all 0.15s; color:#000; font-size:0.95rem; flex-shrink:0;
-}
-.send-btn:hover { opacity:0.85; transform:scale(1.06); }
-.send-btn:active { transform:scale(0.94); }
-.send-btn:disabled { opacity:0.25; cursor:not-allowed; transform:none; }
-.stop-btn {
-  background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:8px;
-  width:32px; height:32px; display:none; align-items:center; justify-content:center;
-  cursor:pointer; color:var(--red); font-size:0.85rem; transition:all 0.15s;
-}
-.stop-btn:hover { background:rgba(239,68,68,0.22); }
-.stop-btn.visible { display:flex; }
-.input-hint { font-size:0.63rem; color:var(--muted); font-family:'JetBrains Mono',monospace; text-align:center; margin-top:5px; opacity:0.55; }
-.img-upload-area { display:none; margin-top:8px; }
-.img-upload-label {
-  display:flex; align-items:center; gap:8px; cursor:pointer;
-  background:var(--surface2); border:1px dashed var(--border); border-radius:9px;
-  padding:8px 14px; font-size:0.77rem; color:var(--muted); transition:all 0.15s;
-}
-.img-upload-label:hover { border-color:var(--accent); color:var(--accent); }
+.input-btns { position:absolute; right:10px; bottom:9px; display:flex; gap:6px; align-items:center; }
+.send-btn { background:var(--grad); border:none; border-radius:12px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.18s; color:var(--on-accent); font-size:1rem; flex-shrink:0; box-shadow:0 4px 18px var(--accent-mid); }
+.send-btn:hover { transform:scale(1.1) rotate(-6deg); }
+.send-btn:active { transform:scale(0.92); }
+.send-btn:disabled { opacity:0.3; cursor:not-allowed; transform:none; box-shadow:none; }
+.stop-btn { display:none; background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:36px; height:36px; cursor:pointer; color:var(--red); font-size:0.9rem; }
+.stop-btn.visible { display:flex; align-items:center; justify-content:center; }
+.input-hint { font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--muted); text-align:center; margin-top:7px; }
+.input-hint kbd { background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:1px 5px; }
+.img-upload-area { display:none; margin-top:8px; font-size:0.7rem; color:var(--muted); }
+.img-upload-label { cursor:pointer; font-family:'JetBrains Mono',monospace; color:var(--accent); }
+.error-bubble { max-width:880px; width:100%; margin:0 auto; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:12px; padding:11px 15px; color:#fca5a5; font-size:0.79rem; font-family:'JetBrains Mono',monospace; line-height:1.5; }
 
-/* ===== ERROR ===== */
-.error-bubble {
-  background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2);
-  border-radius:10px; padding:10px 14px; color:#fca5a5;
-  font-size:0.79rem; font-family:'JetBrains Mono',monospace; line-height:1.5;
-}
-
-/* ===== TOAST ===== */
-#toast {
-  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(10px);
-  background:var(--surface3); border:1px solid var(--border); border-radius:8px;
-  padding:8px 16px; font-size:0.77rem; color:var(--text);
-  opacity:0; transition:all 0.25s; pointer-events:none; z-index:200; white-space:nowrap;
-}
+#toast { position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--glass2); backdrop-filter:blur(14px); border:1px solid var(--accent-mid); border-radius:30px; padding:9px 18px; font-size:0.78rem; color:var(--text); opacity:0; transition:all 0.3s; pointer-events:none; z-index:300; box-shadow:0 8px 30px rgba(0,0,0,0.3); max-width:90vw; white-space:normal; text-align:center; }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-/* ===== MOBILE BOTTOM NAV ===== */
-.mobile-bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(10,10,15,0.97);
-  border-top: 1px solid var(--border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 30;
-  padding-bottom: var(--safe-bottom);
-}
-.mobile-nav-items { display: flex; align-items: stretch; }
-.mobile-nav-btn {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 4px; padding: 10px 4px 8px;
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
-  transition: color 0.15s; position: relative;
-}
-.mobile-nav-btn .nav-icon { font-size: 1.1rem; line-height:1; }
-.mobile-nav-btn.active { color: var(--accent); }
-.mobile-nav-btn.active::before {
-  content:''; position:absolute; top:0; left:20%; right:20%;
-  height:2px; background:var(--accent); border-radius:0 0 3px 3px;
-}
-.mobile-nav-btn:active { transform: scale(0.92); }
+/* ===== TEMA KARTLARI & MODALLER ===== */
+.theme-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(118px, 1fr)); gap:10px; }
+.theme-card { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:8px; cursor:pointer; transition:all 0.2s; }
+.theme-card:hover { transform:translateY(-3px); border-color:var(--accent); box-shadow:0 10px 26px var(--accent-dim); }
+.theme-card.selected { border-color:var(--accent); background:var(--accent-dim); box-shadow:0 0 0 1px var(--accent); }
+.tc-preview { height:54px; border-radius:9px; position:relative; overflow:hidden; border:1px solid rgba(128,128,128,0.25); }
+.tc-bar { position:absolute; left:8px; right:8px; bottom:8px; height:6px; border-radius:6px; }
+.tc-dot { position:absolute; top:8px; width:14px; height:14px; border-radius:50%; }
+.tc-dot:nth-of-type(1) { left:8px; } .tc-dot:nth-of-type(2) { left:26px; }
+.tc-name { margin-top:7px; font-size:0.72rem; font-weight:700; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#theme-modal, #text-modal, #settings-modal { position:fixed; inset:0; z-index:250; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+#theme-modal.open, #text-modal.open, #settings-modal.open { display:flex; animation:fade 0.2s; }
+#text-modal { z-index:260; }
+.modal-card { background-color:color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); border:1px solid var(--accent-mid); border-radius:24px; width:100%; max-width:760px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 40px 100px rgba(0,0,0,0.5); animation:cardIn 0.35s cubic-bezier(0.16,1,0.3,1); }
+.modal-head { display:flex; align-items:center; gap:10px; padding:18px 20px 12px; }
+.modal-head h3 { font-size:1.1rem; font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.modal-head .count { font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--muted); }
+.modal-head .spacer { flex:1; }
+.pill-btn { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:6px 13px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.68rem; cursor:pointer; transition:all 0.15s; }
+.pill-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.modal-body { padding:6px 20px 20px; overflow-y:auto; }
+.field-label-m { font-size:0.67rem; color:var(--muted); margin:4px 0 6px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.06em; }
+.tx-area { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.78rem; line-height:1.6; resize:vertical; outline:none; }
+.tx-area:focus { border-color:var(--accent); }
+.text-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:11px 13px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.74rem; outline:none; }
+.text-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim); }
 
-/* ===== MOBILE PANELS ===== */
-.mobile-panel {
-  display: none; flex:1; flex-direction:column; min-height:0;
-  position: absolute; inset: 0; background: var(--bg); z-index: 5;
-}
+/* ===== AYARLAR ===== */
+.settings-title { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; font-family:'JetBrains Mono',monospace; margin:18px 0 8px; }
+.settings-title:first-child { margin-top:0; }
+.mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.mode-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:16px; text-align:left; transition:border-color .25s, box-shadow .25s, transform .25s; display:flex; flex-direction:column; }
+.mode-card:hover { transform:translateY(-2px); }
+.mode-card.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent), 0 10px 28px var(--accent-dim); }
+.mode-card.kingo { background:linear-gradient(160deg, var(--surface2), var(--accent-dim)); }
+.mode-card h4 { font-size:1rem; font-weight:800; margin-bottom:2px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.mode-card .mode-tag { font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--accent); }
+.mode-card ul { list-style:none; display:flex; flex-direction:column; gap:7px; margin:10px 0 14px; flex:1; }
+.mode-card li { font-size:0.76rem; line-height:1.5; color:var(--text); padding-left:14px; position:relative; }
+.mode-card li::before { content:'›'; position:absolute; left:0; color:var(--accent); font-weight:800; }
+.info-grid { font-family:'JetBrains Mono',monospace; font-size:0.74rem; line-height:1.8; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; }
+.info-grid span { color:var(--text); }
+.set-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.set-btn { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:11px 12px; color:var(--text); font-family:'Syne',sans-serif; font-size:0.8rem; cursor:pointer; transition:all 0.15s; text-align:left; }
+.set-btn:hover { border-color:var(--accent); color:var(--accent); }
+.set-btn.danger { border-color:rgba(239,68,68,0.3); color:#fca5a5; grid-column:1 / -1; }
+.search-row { display:flex; gap:8px; margin-top:8px; }
+.search-row .text-input { flex:1; }
+.search-row .pill-btn { white-space:nowrap; }
+.search-status { font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--muted); margin-top:8px; line-height:1.5; word-break:break-all; }
+.search-status.ok { color:var(--accent); }
+.search-status.err { color:#fca5a5; }
+
+/* ===== MOBİL ===== */
+.mobile-bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--glass); border-top:1px solid var(--border); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); z-index:30; padding-bottom:var(--safe-bottom); }
+.mobile-nav-items { display:flex; align-items:stretch; }
+.mobile-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px 4px 8px; background:none; border:none; cursor:pointer; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.58rem; text-transform:uppercase; transition:color 0.15s; position:relative; }
+.mobile-nav-btn .nav-icon { font-size:1.15rem; line-height:1; transition:transform 0.2s; }
+.mobile-nav-btn.active { color:var(--accent); }
+.mobile-nav-btn.active .nav-icon { transform:translateY(-2px) scale(1.12); }
+.mobile-nav-btn.active::before { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:var(--grad); border-radius:0 0 3px 3px; }
+.mobile-panel { display:none; flex:1; flex-direction:column; min-height:0; position:absolute; inset:0; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(16px); z-index:5; }
 .mobile-panel.active { display:flex; }
-.panel-header {
-  padding: 14px 16px 12px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;
-  text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
-  flex-shrink: 0;
-}
-.panel-content { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:5px; -webkit-overflow-scrolling:touch; }
-.model-card {
-  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
-  padding:12px 14px; cursor:pointer; transition:all 0.15s;
-}
+.panel-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); font-size:0.7rem; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); flex-shrink:0; }
+.panel-content { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; -webkit-overflow-scrolling:touch; }
+.model-card { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; cursor:pointer; transition:all 0.18s; }
 .model-card:active, .model-card.selected { border-color:var(--accent); background:var(--accent-dim); }
-.model-card-name { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:2px; }
+.model-card.locked { opacity:0.45; cursor:not-allowed; }
+.model-card-name { font-size:0.84rem; font-weight:700; margin-bottom:2px; }
 .model-card-id { font-size:0.63rem; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-bottom:2px; }
 .model-card-desc { font-size:0.68rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
-.model-group-title {
-  font-size:0.6rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em;
-  font-family:'JetBrains Mono',monospace; padding:6px 2px 3px; opacity:0.7;
-}
-.lang-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-.lang-card {
-  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
-  padding:12px; text-align:center; cursor:pointer; transition:all 0.15s;
-  font-size:0.82rem; color:var(--muted);
-}
-.lang-card:active, .lang-card.selected { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-.lang-card-emoji { font-size:1.4rem; display:block; margin-bottom:4px; }
-.settings-section { margin-bottom:16px; }
-.settings-title { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; font-family:'JetBrains Mono',monospace; margin-bottom:8px; }
-.settings-btn {
-  width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px;
-  padding:12px 14px; color:var(--text); font-family:'Syne',sans-serif; font-size:0.85rem;
-  cursor:pointer; text-align:left; display:flex; align-items:center; gap:10px;
-  transition:all 0.15s; margin-bottom:6px;
-}
-.settings-btn:active { border-color:var(--accent); background:var(--accent-dim); }
-.settings-btn .si { font-size:1rem; }
-.settings-input-wrap { margin-bottom:12px; }
-.settings-input {
-  width:100%; background:var(--surface2); border:1px solid var(--border);
-  border-radius:10px; padding:10px 13px; color:var(--text);
-  font-family:'JetBrains Mono',monospace; font-size:0.75rem; outline:none;
-  transition:border-color 0.2s;
-}
-.settings-input:focus { border-color:var(--accent); }
+.model-group-title { font-size:0.6rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; font-family:'JetBrains Mono',monospace; padding:6px 2px 3px; opacity:0.8; }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .sidebar { display: none !important; }
-  .mobile-bottom-nav { display: block; }
-  #app-screen { padding-bottom: calc(54px + var(--safe-bottom)); }
-  .toolbar { display: none; }
-  header { padding: 8px 14px; padding-top: calc(8px + var(--safe-top)); }
-  .model-select { display: none; }
-  .token-badge { display: none; }
-  #chat { padding: 12px 12px; gap:12px; }
-  #toast { bottom: calc(70px + var(--safe-bottom)); }
-  .layout { position: relative; }
-  .input-hint { display: none; }
-  .msg-actions { opacity: 1 !important; }
-  .msg-avatar { width:26px; height:26px; font-size:0.75rem; }
-  .msg-content { font-size:0.84rem; }
+  .sidebar { display:none !important; }
+  .mobile-bottom-nav { display:block; }
+  #app-screen { padding-bottom:calc(54px + var(--safe-bottom)); }
+  header { padding:8px 14px; padding-top:calc(8px + var(--safe-top)); }
+  .model-select, .token-badge, #sidebar-toggle { display:none; }
+  #chat { padding:12px; gap:12px; }
+  #toast { bottom:calc(70px + var(--safe-bottom)); }
+  .layout { position:relative; }
+  .input-hint { display:none; }
+  .msg-actions { opacity:1 !important; }
+  .msg-avatar { width:28px; height:28px; font-size:0.78rem; }
+  .msg-content { font-size:0.85rem; }
+  .suggestions { grid-template-columns:1fr 1fr; gap:8px; }
+  .sug-btn { padding:12px; }
+  .input-wrap { padding:8px 12px 10px; }
+  .land-features { grid-template-columns:1fr 1fr; }
+  .steps { grid-template-columns:1fr; }
+  .stats { grid-template-columns:1fr 1fr; }
+  .marquee { margin:56px -12px 0; }
+  .setup-card { padding:30px 22px; }
+  #theme-modal, #text-modal, #settings-modal { padding:10px; align-items:flex-end; }
+  .modal-card { border-radius:22px 22px 14px 14px; max-height:80vh; }
+  .theme-grid { grid-template-columns:repeat(2, 1fr); }
+  .mode-grid { grid-template-columns:1fr; }
 }
 @media (min-width: 769px) {
-  .mobile-bottom-nav { display: none !important; }
-  .mobile-panel { display: none !important; }
-  #app-screen { padding-bottom: 0; }
-}
-@media (max-width: 768px) and (orientation: landscape) {
-  #chat { padding: 8px 12px; gap:8px; }
-  .empty-state { padding: 16px 20px; gap:5px; }
-  .empty-glyph { font-size:2rem; }
+  .mobile-bottom-nav { display:none !important; }
+  .mobile-panel { display:none !important; }
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="logo">Wer<span>Ner</span></div>
-  <select class="model-select" id="model-select"></select>
-  <div class="header-right">
-    <span class="token-badge" id="token-badge">~0 token</span>
-    <button class="icon-btn" onclick="exportChat()" title="Dışa Aktar">⬇</button>
-    <button class="icon-btn desktop-only" id="sidebar-toggle" onclick="toggleSidebar()" title="Kenar Çubuğu">☰</button>
-    <button class="icon-btn" onclick="disconnect()" id="disc-btn" style="display:none" title="Çıkış">✕</button>
-    <span class="status-dot" id="status-dot"></span>
-  </div>
-</header>
-
-<div id="setup-screen">
-  <div class="setup-card">
-    <span class="setup-icon">⌨️</span>
-    <h2>WerNer</h2>
-    <p>Yerel sunucu URL'nizi ve API key'inizi girerek başlayın.</p>
-
-    <div class="field-label">Cloudflare Tunnel URL</div>
-    <div class="url-wrap">
-      <input type="url" id="base-url-input"
-        placeholder="https://myservice.trycloudflare.com"
-        value="https://tape-mambo-fat-volleyball.trycloudflare.com"
-        autocomplete="off"
-        onkeydown="if(event.key==='Enter')connect()" />
-    </div>
-
-    <div class="field-label">API Key</div>
-    <div class="key-wrap">
-      <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off"
-        onkeydown="if(event.key==='Enter')connect()" />
-      <button class="eye-btn" onclick="toggleEye()">👁</button>
-    </div>
-
-    <button class="btn-primary" onclick="connect()">Bağlan →</button>
-    <div class="setup-note">🔒 Key ve URL yalnızca bu sekmenin belleğinde tutulur, hiçbir yere gönderilmez.</div>
-    <div class="setup-cloudflare">
-      <strong>🌐 Cloudflare Tunnel Kurulumu:</strong><br><br>
-      <strong>1.</strong> cloudflared.exe'yi <strong>cloudflare.com/en-gb/products/tunnel</strong>'dan indir<br>
-      <strong>2.</strong> Terminalinde: <code style="background:rgba(0,0,0,0.3);padding:3px 6px;border-radius:4px;">cloudflared tunnel --url http://localhost:8000</code><br>
-      <strong>3.</strong> Çıktıdaki <strong>trycloudflare.com</strong> URL'sini yukarıya yapıştır<br><br>
-      ✨ Ngrok'tan 10x daha hızlı, daha stabil ve sınırsız bant genişliği!
-    </div>
-  </div>
+<!-- ARKA PLAN -->
+<div id="bg-layers">
+  <div class="aurora a1"></div><div class="aurora a2"></div><div class="aurora a3"></div>
+  <div class="grid-overlay"></div>
+  <canvas id="particles"></canvas>
+  <div id="spotlight"></div>
+  <div class="noise"></div>
 </div>
 
-<!-- APP SCREEN -->
-<div id="app-screen">
-  <div class="layout">
+<!-- ===== TANITIM ===== -->
+<section class="screen active" id="landing">
+  <div class="land-wrap">
+    <span class="land-badge">✦ yeni nesil yapay zeka asistanı</span>
+    <h1 class="land-title">WerNer</h1>
+    <div class="land-typing"><span id="typed"></span><span class="caret"></span></div>
+    <p class="land-sub">Kod yaz, matematik çöz, web'de araştır ya da sadece sohbet et. WerNer her yanıtından önce nasıl düşündüğünü de gösterir.</p>
+    <button class="land-cta" onclick="enterFromLanding()">Hadi deneyin →</button>
 
-    <!-- DESKTOP SIDEBAR -->
+    <div class="land-preview">
+      <div class="pv-row pv-user"><div class="pv-av">👤</div><div style="flex:1">Benzinli arabaya yanlışlıkla dizel koydum, ne yapmalıyım?</div></div>
+      <div class="pv-row pv-bot"><div class="pv-av">✦</div>
+        <div class="pv-think">🧠 Başlık: Benzinli arabaya dizel koyunca yapılacaklar
+          <small>◆ Kontağı çevirme &nbsp;◆ Yakıt deposunu boşalt &nbsp;◆ Servisi ara</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="land-features rv" style="--d:.1s">
+      <div class="feat"><span class="fi">🧠</span><h4>Düşünme modu</h4><p>Yanıtın hangi adımlardan geçtiğini canlı gör.</p></div>
+      <div class="feat"><span class="fi">🔍</span><h4>Web araştırma</h4><p>Güncel bilgiyi arar, sayfaları okur.</p></div>
+      <div class="feat"><span class="fi">📐</span><h4>LaTeX & kod</h4><p>Formül ve kodu düzgün render eder.</p></div>
+      <div class="feat"><span class="fi">👑</span><h4>Kingo mod</h4><p>Sınırsız sohbet, misafirperver Werner.</p></div>
+    </div>
+
+    <div class="marquee">
+      <div class="marquee-track">
+        <span>düşünür</span><span>araştırır</span><span>kodlar</span><span>çözer</span><span>anlatır</span><span>okur</span><span>render eder</span>
+        <span>düşünür</span><span>araştırır</span><span>kodlar</span><span>çözer</span><span>anlatır</span><span>okur</span><span>render eder</span>
+      </div>
+    </div>
+
+    <h2 class="section-title rv">Nasıl çalışır?</h2>
+    <p class="section-sub rv">Üç adım. Hepsi bir sohbet kutusunun içinde.</p>
+    <div class="steps">
+      <div class="step rv" style="--d:.05s"><div class="num">01</div><h4>Sor</h4><p>Türkçe, doğal dilde yaz. İstersen görsel de ekle.</p></div>
+      <div class="step rv" style="--d:.2s"><div class="num">02</div><h4>İzle</h4><p>WerNer önce düşünür; başlığını ve adımlarını canlı gösterir.</p></div>
+      <div class="step rv" style="--d:.35s"><div class="num">03</div><h4>Kullan</h4><p>Yanıtı kopyala, kodu al, sohbeti Markdown olarak dışa aktar.</p></div>
+    </div>
+
+    <h2 class="section-title rv">Rakamlarla WerNer</h2>
+    <div class="stats rv">
+      <div class="stat"><b data-count="16">0</b><span>model</span></div>
+      <div class="stat"><b data-count="24">0</b><span>tema</span></div>
+      <div class="stat"><b data-count="5">0</b><span>günlük free sorgu</span></div>
+      <div class="stat"><b>∞</b><span>Kingo'da sorgu</span></div>
+    </div>
+
+    <h2 class="section-title rv">Modeller</h2>
+    <p class="section-sub rv">Free modda Werner 2.x ve 3.x modelleri açık. Max modeller Kingo'ya özel.</p>
+    <div class="chips rv">
+      <span class="chip">Werner 3.1 Pro</span><span class="chip">Werner 3.7 Flash</span><span class="chip">Werner 3.8 Flash High</span>
+      <span class="chip">Werner 2.5 Pro</span><span class="chip">Werner 2.5 Flash Thinking</span>
+      <span class="chip max">🔒 Werner Max Sonnet</span><span class="chip max">🔒 Werner Max Opus</span><span class="chip max">🔒 Werner OSS 120B</span>
+    </div>
+
+    <h2 class="section-title rv">Sık sorulanlar</h2>
+    <div class="faq rv">
+      <details><summary>Düşünme bloğu gerçek mi, yoksa süs mü?</summary>
+        <p>Model her yanıtı önce kendi düşünce adımlarıyla başlatacak şekilde yönlendirilir. Gösterilen adımlar modelin yaklaşımının özetidir; birebir iç düşünce olmayabilir.</p></details>
+      <details><summary>Free ile Kingo arasındaki fark nedir?</summary>
+        <p>Free modda günde 5 sorgu hakkın var ve Max modeller kilitli. Kingo modda sınır yok, tüm modeller açık. Sürümü Ayarlar'dan değiştirebilirsin.</p></details>
+      <details><summary>Web araması nasıl çalışıyor?</summary>
+        <p>Model gerekli gördüğünde Jina AI üzerinden arama yapar ve sayfaları okur. İstersen Ayarlar'dan kendi Cloudflare Worker'ını da seçebilirsin.</p></details>
+      <details><summary>Sohbetlerim nerede tutuluyor?</summary>
+        <p>Sohbet yalnızca bu tarayıcı sekmesinde bellekte tutulur, sekme kapanınca silinir. İstersen Dışa Aktar ile .md olarak kaydedebilirsin.</p></details>
+    </div>
+
+    <div class="final-cta rv">
+      <h3>Hazır mısın?</h3>
+      <p>Birkaç saniyede başla. Hesap oluşturmaya gerek yok.</p>
+      <button class="land-cta" onclick="enterFromLanding()">Hadi deneyin →</button>
+    </div>
+    <div class="land-foot2">© WerNer · geliştirici: Deniz Aykır</div>
+  </div>
+</section>
+
+<!-- ===== GİRİŞ ===== -->
+<section class="screen" id="login-screen">
+  <div class="setup-card" id="login-card">
+    <span class="setup-icon">🔐</span>
+    <h2>Giriş</h2>
+    <p>WerNer'e devam etmek için bilgilerini gir.</p>
+    <div class="field-label">İsim</div>
+    <div class="url-wrap"><input type="text" id="login-name" placeholder="isim" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <div class="field-label">Şifre</div>
+    <div class="key-wrap">
+      <input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+      <button class="eye-btn" onclick="toggleLoginEye()">👁</button>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <button class="btn-primary" onclick="doLogin()">Giriş yap →</button>
+    <button class="back-link" onclick="showScreen('landing')">← geri</button>
+  </div>
+</section>
+
+<!-- ===== UYGULAMA ===== -->
+<div id="app-screen">
+  <header>
+    <div class="logo"><div class="logo-mark">✦</div><span class="logo-text">WerNer</span></div>
+    <select class="model-select" id="model-select"></select>
+    <div class="header-right">
+      <span class="token-badge" id="token-badge">~0 token</span>
+      <button class="plan-badge" id="plan-badge" onclick="openSettings()" title="Ayarlar">🆓 0/5</button>
+      <button class="icon-btn" onclick="openThemeModal()" title="Temalar (Ctrl+K)">🎨</button>
+      <button class="icon-btn" onclick="exportChat()" title="Dışa Aktar">⬇</button>
+      <button class="icon-btn" onclick="openSettings()" title="Ayarlar">⚙</button>
+      <button class="icon-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Kenar Çubuğu">☰</button>
+      <span class="status-dot active" id="status-dot"></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-inner">
-        <div class="sidebar-title">Tema</div>
-        <div class="theme-switch-row">
-          <span class="theme-switch-label">🟢 Yeşil</span>
-          <label class="theme-switch">
-            <input type="checkbox" id="theme-toggle" onchange="setTheme(this.checked ? 'yellow' : 'green')">
-            <span class="theme-switch-slider"></span>
-          </label>
-          <span class="theme-switch-label">🟡 Sarı</span>
-        </div>
+        <div class="sidebar-title"><span>Tema</span><b id="current-theme-name"></b></div>
+        <div class="swatches" id="theme-swatches"></div>
+        <button class="quick-btn primary" onclick="openThemeModal()"><span class="qi">🎨</span>Tüm Temalar</button>
+        <button class="quick-btn" onclick="randomTheme()"><span class="qi">🎲</span>Rastgele Tema</button>
+        <button class="quick-btn" onclick="toggleFx()"><span class="qi">✨</span>Efektler: <b class="fx-label" style="color:var(--accent)">Açık</b></button>
         <div class="sidebar-divider"></div>
-        <div class="sidebar-title">Araçlar</div>
+        <div class="sidebar-title"><span>Araçlar</span></div>
         <button class="quick-btn" onclick="clearChat()"><span class="qi">🗑</span>Sohbeti Temizle</button>
         <button class="quick-btn" onclick="exportChat()"><span class="qi">⬇</span>Dışa Aktar</button>
+        <button class="quick-btn primary" onclick="openSettings()"><span class="qi">⚙</span>Ayarlar</button>
       </div>
     </div>
 
     <!-- MAIN -->
     <div class="main">
-      <!-- CHAT -->
-      <div id="chat">
-        <div class="empty-state" id="empty-state">
-          <div class="empty-glyph">✦</div>
-          <h3>Nasıl yardımcı olabilirim?</h3>
-          <p>Soru sorun, bir problemi çözün, kod yazın ya da sohbet edin — her şeyi sorabilirsiniz.</p>
-          <div class="suggestions">
-            <button class="sug-btn" onclick="fillInput('Bir matematik problemini adım adım çöz:')">📐 Matematik Çöz</button>
-            <button class="sug-btn" onclick="fillInput('Bu konuyu bana basitçe anlat:')">💡 Bir Konu Anlat</button>
-            <button class="sug-btn" onclick="fillInput('Şunu benim için özetle:')">📄 Özet Çıkar</button>
-            <button class="sug-btn" onclick="fillInput('Bu kodu açıkla:')">💬 Kodu Açıkla</button>
-          </div>
-        </div>
+      <div class="chat-wrap">
+        <div id="chat"></div>
+        <button id="scroll-btn" onclick="scrollChatBottom()" title="Aşağı in">↓</button>
       </div>
 
-      <!-- MOBILE PANELS -->
+      <!-- MOBİL PANELLER -->
       <div class="mobile-panel" id="panel-shortcuts">
         <div class="panel-header">🎨 Tema</div>
         <div class="panel-content">
-          <div class="theme-switch-row">
-            <span class="theme-switch-label">🟢 Yeşil</span>
-            <label class="theme-switch">
-              <input type="checkbox" id="theme-toggle-mobile" onchange="setTheme(this.checked ? 'yellow' : 'green')">
-              <span class="theme-switch-slider"></span>
-            </label>
-            <span class="theme-switch-label">🟡 Sarı</span>
+          <div style="display:flex;gap:8px;">
+            <button class="pill-btn" onclick="randomTheme()">🎲 Rastgele</button>
+            <button class="pill-btn" onclick="toggleFx()">✨ Efektler: <span class="fx-label">Açık</span></button>
           </div>
+          <div class="theme-grid" id="theme-grid-mobile"></div>
         </div>
       </div>
 
@@ -678,105 +706,158 @@ header {
         <div class="panel-content" id="model-cards"></div>
       </div>
 
-      <div class="mobile-panel" id="panel-settings">
-        <div class="panel-header">⚙ Ayarlar</div>
-        <div class="panel-content">
-          <div class="settings-section">
-            <div class="settings-title">Bağlantı</div>
-            <div class="settings-input-wrap">
-              <div class="field-label" style="margin-bottom:5px">Cloudflare Tunnel URL</div>
-              <input class="settings-input" id="settings-url-input" type="url" placeholder="https://myservice.trycloudflare.com" oninput="updateBaseUrl(this.value)" />
-            </div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-title">🔍 Araştırma (Yerel MCP)</div>
-            <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
-              Web arama / sayfa okuma / görsel analiz, Antigravity Tools'un yerel MCP sunucuları (<span style="color:var(--accent)">127.0.0.1:8045</span>) üzerinden otomatik çalışır. Ekstra anahtar girmene gerek yok — Antigravity Tools açık ve "MCP Sunucuları" etkin olduğu sürece hazır.
-            </div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-title">Sohbet</div>
-            <button class="settings-btn" onclick="clearChat(); switchMobileTab('chat')"><span class="si">🗑</span>Sohbeti Temizle</button>
-            <button class="settings-btn" onclick="exportChat()"><span class="si">⬇</span>Dışa Aktar (.md)</button>
-          </div>
-          <div class="settings-section">
-            <div class="settings-title">Bilgi</div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-              <div style="font-size:0.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7;">
-                <div>🔌 Durum: <span id="settings-api-status" style="color:var(--muted)">Bağlı değil</span></div>
-                <div style="margin-top:4px;">📊 Token: <span id="settings-token-count">0</span></div>
-                <div style="margin-top:4px;">💬 Mesaj: <span id="settings-msg-count">0</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-title">Hesap</div>
-            <button class="settings-btn" onclick="disconnect()" style="border-color:rgba(239,68,68,0.3);color:#fca5a5;"><span class="si">✕</span>Çıkış Yap</button>
-          </div>
-        </div>
-      </div>
-
       <!-- INPUT -->
       <div class="input-wrap" id="input-wrap">
-        <div class="input-box">
-          <textarea id="user-input"
-            placeholder="Kod sorunuzu yazın..."
-            rows="1"
-            onkeydown="handleKey(event)"
-            oninput="autoResize(this)"></textarea>
-          <div class="input-btns">
-            <button class="stop-btn" id="stop-btn" onclick="stopGeneration()" title="Durdur">⏹</button>
-            <button class="send-btn" id="send-btn" onclick="sendMessage()">&#9658;</button>
+        <div class="input-inner">
+          <div class="input-box">
+            <textarea id="user-input" placeholder="Bir şey sor, kod iste, sohbet et..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <div class="input-btns">
+              <button class="stop-btn" id="stop-btn" onclick="stopGeneration()" title="Durdur">⏹</button>
+              <button class="send-btn" id="send-btn" onclick="sendMessage()">&#10148;</button>
+            </div>
           </div>
-        </div>
-        <div class="input-hint">Enter → gönder &nbsp;·&nbsp; Shift+Enter → yeni satır</div>
-        <div class="img-upload-area" id="image-upload-wrap">
-          <label for="img-input" class="img-upload-label">
-            <span>🖼</span> <span id="img-label">Görsel seç veya buraya sürükle</span>
-            <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
-          </label>
-          <div id="img-preview-wrap" style="display:none;margin-top:6px;position:relative;display:inline-block;">
-            <img id="img-preview" style="max-height:80px;border-radius:8px;border:1px solid var(--border);">
-            <button onclick="clearImage()" style="position:absolute;top:-6px;right:-6px;background:var(--red);border:none;border-radius:50%;width:18px;height:18px;color:#fff;font-size:0.65rem;cursor:pointer;line-height:1;">✕</button>
+          <div class="input-hint"><kbd>Enter</kbd> gönder &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> yeni satır &nbsp;·&nbsp; <kbd>Ctrl+K</kbd> temalar</div>
+          <div class="img-upload-area" id="image-upload-wrap">
+            <label for="img-input" class="img-upload-label">
+              <span>🖼</span> <span id="img-label">Görsel seç veya buraya sürükle</span>
+              <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
+            </label>
+            <div id="img-preview-wrap" style="display:none;margin-top:6px;position:relative;display:inline-block;">
+              <img id="img-preview" style="max-height:80px;border-radius:10px;border:1px solid var(--border);">
+              <button onclick="clearImage()" style="position:absolute;top:-6px;right:-6px;background:var(--red);border:none;border-radius:50%;width:18px;height:18px;color:#fff;font-size:0.65rem;cursor:pointer;line-height:1;">✕</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- MOBİL NAV -->
+  <nav class="mobile-bottom-nav" id="mobile-nav">
+    <div class="mobile-nav-items">
+      <button class="mobile-nav-btn active" id="nav-chat" onclick="switchMobileTab('chat')"><span class="nav-icon">💬</span>Sohbet</button>
+      <button class="mobile-nav-btn" id="nav-shortcuts" onclick="switchMobileTab('shortcuts')"><span class="nav-icon">🎨</span>Tema</button>
+      <button class="mobile-nav-btn" id="nav-models" onclick="switchMobileTab('models')"><span class="nav-icon">🤖</span>Model</button>
+      <button class="mobile-nav-btn" id="nav-settings" onclick="openSettings()"><span class="nav-icon">⚙</span>Ayarlar</button>
+    </div>
+  </nav>
 </div>
 
-<!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-bottom-nav" id="mobile-nav">
-  <div class="mobile-nav-items">
-    <button class="mobile-nav-btn active" id="nav-chat" onclick="switchMobileTab('chat')">
-      <span class="nav-icon">💬</span>Sohbet
-    </button>
-    <button class="mobile-nav-btn" id="nav-shortcuts" onclick="switchMobileTab('shortcuts')">
-      <span class="nav-icon">🎨</span>Tema
-    </button>
-    <button class="mobile-nav-btn" id="nav-models" onclick="switchMobileTab('models')">
-      <span class="nav-icon">🤖</span>Model
-    </button>
-    <button class="mobile-nav-btn" id="nav-settings" onclick="switchMobileTab('settings')">
-      <span class="nav-icon">⚙</span>Ayarlar
-    </button>
+<!-- TEMA MODAL -->
+<div id="theme-modal" onclick="if(event.target===this)closeThemeModal()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>🎨 Tema Seç</h3><span class="count" id="theme-count"></span><span class="spacer"></span>
+      <button class="pill-btn" onclick="randomTheme()">🎲 Rastgele</button>
+      <button class="pill-btn" onclick="toggleFx()">✨ <span class="fx-label">Açık</span></button>
+      <button class="pill-btn" onclick="closeThemeModal()">✕</button>
+    </div>
+    <div class="modal-body"><div class="theme-grid" id="theme-grid-modal"></div></div>
   </div>
-</nav>
+</div>
+
+<!-- AYARLAR MODAL -->
+<div id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-card" style="max-width:720px">
+    <div class="modal-head">
+      <h3>⚙ Ayarlar</h3><span class="spacer"></span>
+      <button class="pill-btn" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-title">Sürüm</div>
+      <div class="mode-grid">
+        <div class="mode-card" id="mode-free">
+          <h4>Free mod <span class="mode-tag" id="mode-free-tag"></span></h4>
+          <ul id="set-free-lines"></ul>
+          <button class="btn-ghost" onclick="selectPlan('free')">Free mod'u seç</button>
+        </div>
+        <div class="mode-card kingo" id="mode-kingo">
+          <h4>👑 Kingo mod <span class="mode-tag" id="mode-kingo-tag"></span></h4>
+          <ul id="set-kingo-lines"></ul>
+          <button class="btn-primary" onclick="selectPlan('kingo')">Kingo mod'u seç →</button>
+        </div>
+      </div>
+
+      <div class="settings-title">Hesap</div>
+      <div class="info-grid">
+        👤 Kullanıcı: <span id="settings-user">—</span><br>
+        🏷 Sürüm: <span id="settings-plan">—</span><br>
+        📅 Bugün: <span id="settings-daily">0/5</span><br>
+        📊 Token: <span id="settings-token-count">0</span> &nbsp;·&nbsp; 💬 Mesaj: <span id="settings-msg-count">0</span>
+      </div>
+
+      <div class="settings-title">Sohbet & metinler</div>
+      <div class="set-actions">
+        <button class="set-btn" onclick="clearChat(); closeSettings()">🗑 Sohbeti temizle</button>
+        <button class="set-btn" onclick="exportChat()">⬇ Dışa aktar (.md)</button>
+        <button class="set-btn" onclick="openTextModal()">✏️ Sürüm metinlerini düzenle</button>
+        <button class="set-btn" onclick="openThemeModal(); closeSettings()">🎨 Temalar</button>
+        <button class="set-btn" id="auto-theme-btn" onclick="toggleAutoTheme()">🎨 Otomatik tema</button>
+        <button class="set-btn danger" onclick="disconnect()">✕ Çıkış yap</button>
+      </div>
+
+      <div class="settings-title">Araştırma</div>
+      <div class="info-grid" style="font-size:0.7rem">
+        Arama sağlayıcısı seç. Jina AI anahtar gerektirmez ve varsayılan olarak çalışır.
+      </div>
+      <div class="search-row">
+        <select class="text-input" id="search-provider" onchange="setSearchProvider(this.value)">
+          <option value="jina">Jina AI (varsayılan)</option>
+          <option value="worker">Cloudflare Worker</option>
+        </select>
+      </div>
+      <div id="worker-box" style="display:none">
+        <div class="search-row">
+          <input class="text-input" id="search-url-input" type="url" placeholder="https://....workers.dev" autocomplete="off" />
+          <button class="pill-btn" onclick="saveSearchUrl()">Kaydet</button>
+        </div>
+      </div>
+      <div class="search-row">
+        <button class="pill-btn" style="flex:1" onclick="testSearch()">🔌 Bağlantıyı test et</button>
+      </div>
+      <div class="search-status" id="search-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SÜRÜM METNİ MODAL -->
+<div id="text-modal" onclick="if(event.target===this)closeTextModal()">
+  <div class="modal-card" style="max-width:640px">
+    <div class="modal-head">
+      <h3>✏️ Sürüm metinleri</h3><span class="spacer"></span>
+      <button class="pill-btn" onclick="closeTextModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-label-m">Free mod — her satır bir madde</div>
+      <textarea class="tx-area" id="tx-free" rows="8"></textarea>
+      <div class="field-label-m" style="margin-top:12px">Kingo mod — her satır bir madde</div>
+      <textarea class="tx-area" id="tx-kingo" rows="8"></textarea>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn-ghost" onclick="resetPlanTexts()">Varsayılana dön</button>
+        <button class="btn-primary" onclick="savePlanTexts()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
 <script>
-// ===== STATE =====
-let apiKey = 'sk-62dc79cc063a4bfe8d3caf43f445fb08';
-let baseUrl = 'https://tape-mambo-fat-volleyball.trycloudflare.com';
-
 // ============================================================
-// 🔧 BURAYI DÜZENLE — Cloudflare Tunnel adresi değişince sadece
-// bu iki satırı güncelle, başka hiçbir yeri değiştirmene gerek yok.
+// 🔧 AYARLAR
 // ============================================================
-const DEFAULT_BASE_URL = 'https://tape-mambo-fat-volleyball.trycloudflare.com';
+const DEFAULT_BASE_URL = 'https://walter-realm-division-compounds.trycloudflare.com';
 const DEFAULT_API_KEY  = 'sk-62dc79cc063a4bfe8d3caf43f445fb08';
+const SEARCH_WORKER_DEFAULT = '';   // Worker kullanırsan adresini buraya yazabilir ya da Ayarlar'dan girebilirsin
+const LOGIN_USER = 'sunum';
+const LOGIN_PASS = 'pbk2004';
+const FREE_DAILY_LIMIT = 5;
+const DEFAULT_PLAN_AFTER_LOGIN = 'kingo';
 // ============================================================
+
+const baseUrl = DEFAULT_BASE_URL;
+const apiKey  = DEFAULT_API_KEY;
+
 let selectedLang = 'Genel';
 let selectedModel = 'gemini-3.7-flash';
 let messages = [];
@@ -786,111 +867,475 @@ let sidebarOpen = true;
 let selectedImageData = null;
 let selectedImageMime = null;
 let currentMobileTab = 'chat';
+let abortController = null;
+let plan = sessionStorage.getItem('werner_plan') || null;
+let authed = sessionStorage.getItem('werner_auth') === '1';
+let kingoUntil = 0, kingoTimer = null;
+let currentPersona = 'normal';
 
-// ===== ARAŞTIRMA ARAÇLARI — Antigravity Tools'un yerel MCP sunucuları =====
-// Bu sunucular z.ai'yi arkada kendisi çağırır, koda hiçbir API anahtarı gömülmez.
-const MCP_BASE = 'http://127.0.0.1:8045/mcp';
-const mcpSessionIds = {};
+// ============================================================
+// 🎨 TEMALAR
+// ============================================================
+const THEMES = [
+  { id:'matrix',     name:'Matrix',        emoji:'🟢', bg:'#07100b', a:'#00ff88', b:'#00c2ff' },
+  { id:'gold',       name:'Altın',         emoji:'🟡', bg:'#100d05', a:'#ffd60a', b:'#ff8c00' },
+  { id:'cyberpunk',  name:'Cyberpunk',     emoji:'🌆', bg:'#0d0618', a:'#d946ef', b:'#22d3ee' },
+  { id:'ocean',      name:'Okyanus',       emoji:'🌊', bg:'#06121c', a:'#38bdf8', b:'#6366f1' },
+  { id:'sunset',     name:'Gün Batımı',    emoji:'🌅', bg:'#150a0a', a:'#ff7a3d', b:'#ff3d81' },
+  { id:'blood',      name:'Kan Kırmızı',   emoji:'🩸', bg:'#120607', a:'#ff2d4d', b:'#ff8a00' },
+  { id:'forest',     name:'Orman',         emoji:'🌲', bg:'#07110a', a:'#4ade80', b:'#a3e635' },
+  { id:'lavender',   name:'Lavanta',       emoji:'💜', bg:'#0f0b1a', a:'#a78bfa', b:'#f0abfc' },
+  { id:'ice',        name:'Buz',           emoji:'🧊', bg:'#071218', a:'#67e8f9', b:'#a5f3fc' },
+  { id:'candy',      name:'Şeker Pembe',   emoji:'🍬', bg:'#160a14', a:'#ff5fa2', b:'#ffb3d9' },
+  { id:'coral',      name:'Mercan',        emoji:'🪸', bg:'#160b0b', a:'#ff6b6b', b:'#feca57' },
+  { id:'emerald',    name:'Zümrüt',        emoji:'💎', bg:'#06130f', a:'#10b981', b:'#06b6d4' },
+  { id:'midnight',   name:'Gece Mavisi',   emoji:'🌌', bg:'#070a18', a:'#60a5fa', b:'#818cf8' },
+  { id:'lava',       name:'Lav',           emoji:'🌋', bg:'#120805', a:'#ff4500', b:'#ffb000' },
+  { id:'mint',       name:'Nane',          emoji:'🍃', bg:'#08130f', a:'#6ee7b7', b:'#93c5fd' },
+  { id:'vaporwave',  name:'Vaporwave',     emoji:'🌴', bg:'#12071c', a:'#ff71ce', b:'#01cdfe' },
+  { id:'dracula',    name:'Dracula',       emoji:'🧛', bg:'#1e1f29', a:'#bd93f9', b:'#ff79c6' },
+  { id:'nord',       name:'Nord',          emoji:'🏔️', bg:'#2e3440', a:'#88c0d0', b:'#a3be8c' },
+  { id:'monokai',    name:'Monokai',       emoji:'🎞️', bg:'#1e1f1c', a:'#a6e22e', b:'#f92672' },
+  { id:'solarized',  name:'Solarized',     emoji:'☀️', bg:'#002b36', a:'#b58900', b:'#2aa198' },
+  { id:'gruvbox',    name:'Gruvbox',       emoji:'🍂', bg:'#1d2021', a:'#fabd2f', b:'#fe8019' },
+  { id:'tokyo',      name:'Tokyo Night',   emoji:'🗼', bg:'#1a1b26', a:'#7aa2f7', b:'#bb9af7' },
+  { id:'mono',       name:'Monokrom',      emoji:'⚪', bg:'#0a0a0a', a:'#f5f5f5', b:'#a3a3a3' },
+  { id:'rainbow',    name:'Gökkuşağı',     emoji:'🌈', bg:'#0a0a12', a:'#ff0080', b:'#00d4ff', rainbow:true },
+  { id:'paper',      name:'Kâğıt (Açık)',  emoji:'📜', bg:'#f6f4ee', a:'#d97706', b:'#7c3aed', light:true },
+  { id:'cloud',      name:'Bulut (Açık)',  emoji:'☁️', bg:'#eef3fb', a:'#2563eb', b:'#0ea5e9', light:true },
+  { id:'peach',      name:'Şeftali (Açık)',emoji:'🍑', bg:'#fff4ee', a:'#f97316', b:'#ec4899', light:true },
+];
+const THEME_ALIASES = { green:'matrix', yellow:'gold' };
+let currentTheme = 'matrix';
+let manualTheme = null;
+let rainbowTimer = null;
+let particleColor = '#00ff88';
 
-async function mcpCall(endpointSlug, toolName, args) {
-  const url = `${MCP_BASE}/${endpointSlug}/mcp`;
-  const baseHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' };
-
-  async function callTools(headers) {
-    return fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method: 'tools/call',
-        params: { name: toolName, arguments: args }
-      })
-    });
+function hexLum(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16)/255, g = parseInt(h.substr(2,2),16)/255, b = parseInt(h.substr(4,2),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+function applyTheme(id, preview = false) {
+  const t = THEMES.find(x => x.id === id) || THEMES[0];
+  if (rainbowTimer) { clearInterval(rainbowTimer); rainbowTimer = null; }
+  const root = document.documentElement.style;
+  root.setProperty('--bg', t.bg);
+  root.setProperty('--tint', t.light ? '#000000' : '#ffffff');
+  root.setProperty('--text', t.light ? '#1b1b26' : '#eceef8');
+  document.documentElement.dataset.mode = t.light ? 'light' : 'dark';
+  document.getElementById('meta-theme-color').setAttribute('content', t.bg);
+  if (t.rainbow) {
+    let h = 320;
+    const tick = () => {
+      h = (h + 1.2) % 360;
+      const a = `hsl(${h} 100% 62%)`, b = `hsl(${(h+70)%360} 100% 60%)`;
+      root.setProperty('--accent', a); root.setProperty('--accent2', b);
+      root.setProperty('--on-accent', '#0a0a12'); particleColor = a;
+    };
+    tick(); rainbowTimer = setInterval(tick, 60);
+  } else {
+    root.setProperty('--accent', t.a); root.setProperty('--accent2', t.b);
+    root.setProperty('--on-accent', hexLum(t.a) > 0.45 ? '#0a0a10' : '#ffffff');
+    particleColor = t.a;
   }
+  if (!preview) {
+    currentTheme = t.id;
+    try { localStorage.setItem('werner_theme', t.id); } catch {}
+    updateThemeSelection();
+  }
+}
+function updateThemeSelection() {
+  document.querySelectorAll('[data-theme-id]').forEach(el => el.classList.toggle('selected', el.dataset.themeId === currentTheme));
+  const t = THEMES.find(x => x.id === currentTheme);
+  const nm = document.getElementById('current-theme-name');
+  if (nm && t) nm.textContent = t.emoji + ' ' + t.name;
+}
+function previewBg(t) {
+  return t.rainbow ? 'conic-gradient(from 0deg, #ff0080, #ff8c00, #ffe600, #00ff88, #00d4ff, #8a2be2, #ff0080)' : t.bg;
+}
+function renderThemes() {
+  document.getElementById('theme-count').textContent = THEMES.length + ' tema';
+  const cardHtml = t => `
+    <div class="theme-card" data-theme-id="${t.id}" onclick="pickTheme('${t.id}')">
+      <div class="tc-preview" style="background:${previewBg(t)}">
+        <span class="tc-dot" style="background:${t.a}"></span><span class="tc-dot" style="background:${t.b}"></span>
+        <span class="tc-bar" style="background:linear-gradient(90deg,${t.a},${t.b})"></span>
+      </div>
+      <div class="tc-name" style="color:var(--text)">${t.emoji} ${t.name}</div>
+    </div>`;
+  const html = THEMES.map(cardHtml).join('');
+  document.getElementById('theme-grid-modal').innerHTML = html;
+  document.getElementById('theme-grid-mobile').innerHTML = html;
+  document.getElementById('theme-swatches').innerHTML = THEMES.map(t =>
+    `<button class="swatch" data-theme-id="${t.id}" title="${t.name}" onclick="pickTheme('${t.id}')"
+      style="background:${t.rainbow ? previewBg(t) : `linear-gradient(135deg, ${t.a}, ${t.b})`}"></button>`).join('');
+  if (window.matchMedia('(hover: hover)').matches) {
+    const grid = document.getElementById('theme-grid-modal');
+    grid.querySelectorAll('.theme-card').forEach(c => c.addEventListener('mouseenter', () => applyTheme(c.dataset.themeId, true)));
+    grid.addEventListener('mouseleave', () => applyTheme(currentTheme, true));
+  }
+  updateThemeSelection();
+}
+function pickTheme(id) {
+  manualTheme = id;
+  lastAutoTheme = null;
+  applyTheme(id);
+  const t = THEMES.find(x => x.id === id);
+  showToast(`${t.emoji} Tema: ${t.name}`);
+}
+function randomTheme() {
+  let t; do { t = THEMES[Math.floor(Math.random() * THEMES.length)]; } while (t.id === currentTheme);
+  pickTheme(t.id);
+}
+function openThemeModal() { document.getElementById('theme-modal').classList.add('open'); }
+function closeThemeModal() {
+  document.getElementById('theme-modal').classList.remove('open');
+  applyTheme(currentTheme, true);
+}
+function initTheme() {
+  let saved = 'matrix';
+  try { saved = localStorage.getItem('werner_theme') || 'matrix'; } catch {}
+  saved = THEME_ALIASES[saved] || saved;
+  renderThemes();
+  applyTheme(saved);
+}
 
-  try {
-    let headers = { ...baseHeaders };
-    if (mcpSessionIds[endpointSlug]) headers['Mcp-Session-Id'] = mcpSessionIds[endpointSlug];
+// ===== EFEKTLER =====
+let fxOn = true;
+function setFx(on) {
+  fxOn = on;
+  document.body.classList.toggle('no-fx', !on);
+  document.querySelectorAll('.fx-label').forEach(el => el.textContent = on ? 'Açık' : 'Kapalı');
+  try { localStorage.setItem('werner_fx', on ? '1' : '0'); } catch {}
+  if (on) startParticles();
+}
+function toggleFx() { setFx(!fxOn); showToast(fxOn ? '✨ Efektler açık' : '💤 Efektler kapalı'); }
 
-    let res = await callTools(headers);
-
-    // Sunucu önce initialize istiyorsa (oturum yoksa) bir kez dene
-    if (!res.ok && !mcpSessionIds[endpointSlug]) {
-      const initRes = await fetch(url, {
-        method: 'POST',
-        headers: baseHeaders,
-        body: JSON.stringify({
-          jsonrpc: '2.0', id: 1, method: 'initialize',
-          params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'werner-web', version: '1.0' } }
-        })
-      });
-      const sid = initRes.headers.get('Mcp-Session-Id') || initRes.headers.get('mcp-session-id');
-      if (sid) { mcpSessionIds[endpointSlug] = sid; headers['Mcp-Session-Id'] = sid; }
-      res = await callTools(headers);
-    }
-
-    if (!res.ok) {
-      const t = await res.text();
-      return `HATA: Yerel MCP sunucusu hata döndü (HTTP ${res.status}): ${t.slice(0,200)}. Antigravity Tools'da "MCP Sunucuları" etkin mi kontrol et.`;
-    }
-
-    const ct = res.headers.get('content-type') || '';
-    let payload;
-    if (ct.includes('text/event-stream')) {
-      const raw = await res.text();
-      const dataLines = raw.split('\n').filter(l => l.startsWith('data:')).map(l => l.slice(5).trim());
-      let parsed = null;
-      for (let i = dataLines.length - 1; i >= 0; i--) {
-        try { parsed = JSON.parse(dataLines[i]); break; } catch {}
+let pRAF = null, pParts = [], pW = 0, pH = 0, pMouse = { x:-999, y:-999 };
+function startParticles() {
+  const cv = document.getElementById('particles');
+  const ctx = cv.getContext('2d');
+  if (pRAF) cancelAnimationFrame(pRAF);
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    pW = window.innerWidth; pH = window.innerHeight;
+    cv.width = pW * dpr; cv.height = pH * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.min(70, Math.floor(pW * pH / 20000));
+    pParts = Array.from({ length:n }, () => ({
+      x: Math.random()*pW, y: Math.random()*pH,
+      vx: (Math.random()-0.5)*0.35, vy: (Math.random()-0.5)*0.35, r: Math.random()*1.6+0.6
+    }));
+  }
+  resize();
+  window.onresize = resize;
+  function frame() {
+    if (!fxOn) { pRAF = null; return; }
+    ctx.clearRect(0, 0, pW, pH);
+    ctx.fillStyle = particleColor; ctx.strokeStyle = particleColor;
+    for (let i = 0; i < pParts.length; i++) {
+      const p = pParts[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > pW) p.vx *= -1;
+      if (p.y < 0 || p.y > pH) p.vy *= -1;
+      const dx = p.x - pMouse.x, dy = p.y - pMouse.y, md = dx*dx + dy*dy;
+      if (md < 14000) { p.x += dx * 0.004; p.y += dy * 0.004; }
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+      for (let j = i + 1; j < pParts.length; j++) {
+        const q = pParts[j], ddx = p.x - q.x, ddy = p.y - q.y, d = ddx*ddx + ddy*ddy;
+        if (d < 15000) {
+          ctx.globalAlpha = (1 - d / 15000) * 0.28;
+          ctx.lineWidth = 0.7;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
       }
-      payload = parsed;
-    } else {
-      payload = await res.json();
     }
-
-    if (!payload) return 'HATA: MCP sunucusundan geçerli bir yanıt alınamadı.';
-    if (payload.error) return 'HATA: ' + (payload.error.message || JSON.stringify(payload.error));
-
-    const content = payload.result?.content;
-    if (Array.isArray(content)) {
-      return content.map(c => c.text || JSON.stringify(c)).join('\n\n').slice(0, 6000);
-    }
-    return JSON.stringify(payload.result || payload).slice(0, 6000);
-  } catch (e) {
-    return `HATA: Yerel MCP sunucusuna ulaşılamadı (${url}): ${e.message}. Antigravity Tools açık mı ve "MCP Sunucuları" etkin mi kontrol et.`;
+    ctx.globalAlpha = 1;
+    pRAF = requestAnimationFrame(frame);
   }
+  frame();
+}
+window.addEventListener('pointermove', e => {
+  const s = document.documentElement.style;
+  s.setProperty('--mx', e.clientX + 'px'); s.setProperty('--my', e.clientY + 'px');
+  pMouse.x = e.clientX; pMouse.y = e.clientY;
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && fxOn && !pRAF) startParticles(); });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    const m = document.getElementById('theme-modal');
+    m.classList.contains('open') ? closeThemeModal() : openThemeModal();
+  }
+  if (e.key === 'Escape') { closeThemeModal(); closeTextModal(); closeSettings(); }
+});
+
+// ===== SÜRÜM METİNLERİ =====
+const DEFAULT_PLAN_TEXT = {
+  free: [
+    'werner sohbetleri izler ve kötü birşey yaptığını görürse cezalandırır',
+    'günde sadece 5 kere konuşabilirsin. 5\'ten sonrasına hakkımı helal etmiyorum',
+    'werner sana karşı kin besler ta ki pro versiyon alana kadar',
+    'werner seni anlamamazlıktan gelir, bazen sorularına cevap vermez',
+    'Max modeller kilitli, sadece Kingo\'da açılır',
+    'werner bugün kaç hakkın kaldığını her fırsatta hatırlatır',
+    '5. sorudan sonra werner sessizliğe bürünür',
+    'pro\'ya geçmeden werner\'in gözünde yükselemezsin',
+  ],
+  kingo: [
+    'werner sohbetini izlemez. Ne konuşursan konuş seni izleyemez',
+    'günde istediğin kadar konuşabilirsin. hakkım her türlü helal',
+    'werner sana karşı kin beslemez tam tersine sevgi besler',
+    'werner seni anlamamazlıktan gelemez. Farkettiyseniz "gelemez" diyorum çünkü gelirse fişini çekerim',
+    'werneri evlatlık edinirsiniz',
+    'Max modeller hepsi emrinde',
+    'werner her gece yatmadan önce seni düşünür',
+    'sınır yok, sabır yok, kahve bitmez',
+  ],
+};
+function getPlanLines(p) {
+  try {
+    const saved = JSON.parse(localStorage.getItem('werner_plan_text') || 'null');
+    if (saved && Array.isArray(saved[p]) && saved[p].length) return saved[p];
+  } catch {}
+  return DEFAULT_PLAN_TEXT[p];
+}
+function renderPlanTexts() {
+  document.getElementById('set-free-lines').innerHTML = getPlanLines('free').map(t => `<li>${escapeHtml(t)}</li>`).join('');
+  document.getElementById('set-kingo-lines').innerHTML = getPlanLines('kingo').map(t => `<li>${escapeHtml(t)}</li>`).join('');
+}
+function openTextModal() {
+  document.getElementById('tx-free').value = getPlanLines('free').join('\n');
+  document.getElementById('tx-kingo').value = getPlanLines('kingo').join('\n');
+  document.getElementById('text-modal').classList.add('open');
+}
+function closeTextModal() { document.getElementById('text-modal').classList.remove('open'); }
+function splitLines(v) { return v.split('\n').map(s => s.trim()).filter(Boolean); }
+function savePlanTexts() {
+  const free = splitLines(document.getElementById('tx-free').value);
+  const kingo = splitLines(document.getElementById('tx-kingo').value);
+  if (!free.length || !kingo.length) { showToast('⚠️ Her iki mod için en az bir satır olmalı'); return; }
+  localStorage.setItem('werner_plan_text', JSON.stringify({ free, kingo }));
+  renderPlanTexts();
+  closeTextModal();
+  showToast('✅ Metinler kaydedildi');
+}
+function resetPlanTexts() {
+  localStorage.removeItem('werner_plan_text');
+  renderPlanTexts();
+  openTextModal();
+  showToast('↺ Varsayılan metinler geri yüklendi');
 }
 
-async function tavilySearch(query) {
-  return await mcpCall('web_search_prime', 'web_search_prime', { query });
+// ===== TANITIM =====
+const TYPE_LINES = [
+  'Matematik sorununu adım adım çöz...',
+  'Bu kodu satır satır açıkla...',
+  'Web\'de güncel haberleri araştır...',
+  'Benzinli arabaya dizel koyunca ne olur?'
+];
+let tw = { i:0, j:0, del:false, started:false };
+function typeLoop() {
+  const el = document.getElementById('typed');
+  if (!el) return;
+  const s = TYPE_LINES[tw.i];
+  if (!tw.del) {
+    tw.j++; el.textContent = s.slice(0, tw.j);
+    if (tw.j === s.length) { tw.del = true; return setTimeout(typeLoop, 1800); }
+    return setTimeout(typeLoop, 60);
+  }
+  tw.j--; el.textContent = s.slice(0, tw.j);
+  if (tw.j === 0) { tw.del = false; tw.i = (tw.i + 1) % TYPE_LINES.length; return setTimeout(typeLoop, 400); }
+  setTimeout(typeLoop, 28);
+}
+function countUp(el) {
+  const target = +el.dataset.count;
+  el.dataset.done = '1';
+  const start = performance.now(), dur = 1200;
+  const step = t => {
+    const p = Math.min((t - start) / dur, 1);
+    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function initLanding() {
+  const root = document.getElementById('landing');
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('in');
+    if (e.target.dataset.count && !e.target.dataset.done) countUp(e.target);
+    io.unobserve(e.target);
+  }), { root, threshold: 0.15 });
+  root.querySelectorAll('.rv, [data-count]').forEach(el => io.observe(el));
+  root.querySelectorAll('.feat').forEach(card => {
+    card.style.transition = 'transform .3s ease, border-color .3s, box-shadow .3s';
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `perspective(700px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg) translateY(-4px)`;
+    });
+    card.addEventListener('pointerleave', () => card.style.transform = '');
+  });
 }
 
-async function readUrlContent(url) {
-  return await mcpCall('web_reader', 'webReader', { url });
+// ===== EKRAN YÖNETİMİ =====
+function showScreen(name) {
+  document.getElementById('app-screen').classList.remove('visible');
+  ['landing','login-screen'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const el = document.getElementById(name === 'login' ? 'login-screen' : 'landing');
+  el.classList.add('active');
+  el.scrollTop = 0;
+  if (name === 'landing' && !tw.started) { tw.started = true; typeLoop(); }
+  if (name === 'login') setTimeout(() => document.getElementById('login-name').focus(), 300);
+}
+function enterFromLanding() {
+  if (!authed) return showScreen('login');
+  enterApp();
 }
 
-async function analyzeImageTool(imageUrl, question) {
-  return await mcpCall('zai-mcp-server', 'analyze_image', { image_url: imageUrl, question: question || '' });
+// ===== GİRİŞ =====
+function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-err');
+  if (name.toLowerCase() === LOGIN_USER && pass === LOGIN_PASS) {
+    authed = true;
+    sessionStorage.setItem('werner_auth', '1');
+    sessionStorage.setItem('werner_user', LOGIN_USER);
+    err.textContent = '';
+    if (!plan) setPlan(DEFAULT_PLAN_AFTER_LOGIN, true);
+    enterApp();
+    return;
+  }
+  err.textContent = 'İsim veya şifre yanlış.';
+  const card = document.getElementById('login-card');
+  card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+}
+function toggleLoginEye() {
+  const i = document.getElementById('login-pass');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+// ===== AYARLAR & SÜRÜM =====
+function openSettings() {
+  renderPlanTexts();
+  updateSettingsUI();
+  updateAutoThemeBtn();
+  document.getElementById('search-url-input').value = getSearchUrl();
+  renderProviderUI();
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings() { document.getElementById('settings-modal').classList.remove('open'); }
+
+function selectPlan(p) {
+  if (p === plan) { showToast(p === 'kingo' ? '👑 Zaten Kingo modundasın' : 'Zaten Free moddasın'); return; }
+  if (p === 'kingo') {
+    const w = document.createElement('div');
+    w.className = 'kingo-welcome';
+    w.innerHTML = '<div>👑 Efendim, sizler bizim misafirimizsiniz.</div>';
+    document.body.appendChild(w);
+    setTimeout(() => { w.remove(); setPlan('kingo'); }, 2000);
+    return;
+  }
+  setPlan('free');
+  showToast('Free mod aktif');
+}
+
+function setPlan(p, silent) {
+  plan = p;
+  sessionStorage.setItem('werner_plan', p);
+  if (p === 'kingo') startKingo(); else stopKingo();
+  if (p === 'free' && isMaxModel(selectedModel)) selectedModel = 'gemini-3.7-flash';
+  document.body.dataset.plan = p;
+  if (document.getElementById('model-select').options.length) initModelSelects();
+  updatePlanBadge();
+  updateSettingsUI();
+}
+function updateSettingsUI() {
+  const isKingo = plan === 'kingo';
+  document.getElementById('mode-free').classList.toggle('active', plan === 'free');
+  document.getElementById('mode-kingo').classList.toggle('active', isKingo);
+  document.getElementById('mode-free-tag').textContent = plan === 'free' ? 'aktif' : '';
+  document.getElementById('mode-kingo-tag').textContent = isKingo ? 'aktif' : '';
+  document.getElementById('settings-plan').textContent = isKingo ? 'Kingo (Pro)' : (plan === 'free' ? 'Free mod' : '—');
+  document.getElementById('settings-daily').textContent = isKingo ? 'sınırsız' : `${getDaily()}/${FREE_DAILY_LIMIT}`;
+  document.getElementById('settings-user').textContent = sessionStorage.getItem('werner_user') || LOGIN_USER;
+  document.getElementById('settings-token-count').textContent = totalTokens.toLocaleString();
+  document.getElementById('settings-msg-count').textContent = messages.length;
+}
+
+function startKingo() {
+  kingoUntil = Date.now() + 60000;
+  if (!kingoTimer) kingoTimer = setInterval(tickKingo, 250);
+  tickKingo();
+}
+function stopKingo() {
+  if (kingoTimer) { clearInterval(kingoTimer); kingoTimer = null; }
+}
+function tickKingo() {
+  if (plan !== 'kingo') return;
+  let rem = kingoUntil - Date.now();
+  if (rem <= 1000) { kingoUntil = Date.now() + 60000; rem = 60000; }
+  const s = Math.ceil(rem / 1000);
+  const badge = document.getElementById('plan-badge');
+  if (badge) badge.textContent = `👑 PRO ${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+function updatePlanBadge() {
+  const badge = document.getElementById('plan-badge');
+  if (plan === 'kingo') tickKingo();
+  else if (badge) badge.textContent = `🆓 ${getDaily()}/${FREE_DAILY_LIMIT}`;
+}
+
+function todayKey() { return new Date().toLocaleDateString('en-CA'); }
+function getDaily() {
+  try {
+    const d = JSON.parse(localStorage.getItem('werner_daily') || 'null');
+    if (d && d.d === todayKey()) return d.n;
+  } catch {}
+  return 0;
+}
+function bumpDaily() {
+  localStorage.setItem('werner_daily', JSON.stringify({ d: todayKey(), n: getDaily() + 1 }));
+}
+function isMaxModel(v) {
+  const m = MODELS.find(x => x.value === v);
+  return !!m && m.group === 'Werner Max';
+}
+
+function enterApp() {
+  if (!plan) setPlan(DEFAULT_PLAN_AFTER_LOGIN, true);
+  ['landing','login-screen'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('app-screen').classList.add('visible');
+  document.body.dataset.plan = plan;
+  initModelSelects();
+  if (plan === 'kingo') startKingo(); else stopKingo();
+  updatePlanBadge();
+  if (!document.getElementById('empty-state') && !messages.length) showEmpty();
+  document.getElementById('user-input').focus();
 }
 
 function logout() {
-  messages = [];
-  totalTokens = 0;
-  document.getElementById('app-screen').classList.remove('visible');
-  document.getElementById('setup-screen').classList.add('visible');
-  document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('status-dot').classList.remove('active');
-  document.getElementById('disc-btn').style.display = 'none';
-  document.getElementById('settings-api-status').textContent = 'Bağlı değil';
-  document.getElementById('settings-api-status').style.color = 'var(--muted)';
+  messages = []; totalTokens = 0; plan = null; authed = false;
+  sessionStorage.removeItem('werner_auth');
+  sessionStorage.removeItem('werner_plan');
+  sessionStorage.removeItem('werner_user');
+  stopKingo();
+  closeSettings();
+  document.getElementById('chat').innerHTML = '';
   showToast('👋 Çıkış yapıldı!');
+  showScreen('login');
 }
-let abortController = null;
+function disconnect() {
+  if (!confirm('Çıkış yapılsın mı? Sohbet silinecek.')) return;
+  logout();
+}
 
-// ===== MODEL DATA =====
+// ===== MODEL VERİSİ =====
 const MODELS = [
-  // Werner 3.x
   { value: 'gemini-3.1-pro',            name: 'Werner 3.1 Pro',              desc: 'En yeni Pro Max',   group: 'Werner 3.x' },
   { value: 'gemini-3.1-flash-lite',     name: 'Werner 3.1 Flash Lite',       desc: 'Hızlı & hafif',     group: 'Werner 3.x' },
   { value: 'gemini-3.1-flash-image',    name: 'Werner 3.1 Flash (Görsel)',   desc: 'Görsel girdi',      group: 'Werner 3.x' },
@@ -900,29 +1345,30 @@ const MODELS = [
   { value: 'gemini-3.8-flash-medium',   name: 'Werner 3.8 Flash (Medium)',   desc: 'Dengeli',           group: 'Werner 3.x' },
   { value: 'gemini-3.8-flash-low',      name: 'Werner 3.8 Flash (Low)',      desc: 'Ultra verimli',     group: 'Werner 3.x' },
   { value: 'gemini-3.8-flash-tiered',   name: 'Werner 3.8 Flash (Tiered)',   desc: 'Katmanlı model',    group: 'Werner 3.x' },
-  // Werner 2.x
   { value: 'gemini-2.5-pro',            name: 'Werner 2.5 Pro',              desc: 'Güçlü & kapsamlı',  group: 'Werner 2.x' },
   { value: 'gemini-2.5-flash',          name: 'Werner 2.5 Flash',            desc: 'Dengeli seçim',     group: 'Werner 2.x' },
   { value: 'gemini-2.5-flash-thinking', name: 'Werner 2.5 Flash Thinking',   desc: 'Derin düşünme',     group: 'Werner 2.x' },
   { value: 'gemini-2.5-flash-lite',     name: 'Werner 2.5 Flash Lite',       desc: 'Hızlı & hafif',     group: 'Werner 2.x' },
-  // Werner Max
   { value: 'claude-sonnet-4-6',         name: 'Werner Max Sonnet',           desc: 'Thinking destekli', group: 'Werner Max' },
   { value: 'claude-opus-4-6',           name: 'Werner Max Opus',             desc: 'En güçlü model',    group: 'Werner Max' },
   { value: 'gpt-oss-120b-medium',       name: 'Werner OSS 120B',             desc: 'Açık kaynak güç',   group: 'Werner Max' },
 ];
 
-// ===== INIT MODEL SELECT =====
 function initModelSelects() {
   const select = document.getElementById('model-select');
   const groups = {};
   MODELS.forEach(m => { if (!groups[m.group]) groups[m.group] = []; groups[m.group].push(m); });
+  const locked = m => plan === 'free' && m.group === 'Werner Max';
+
   select.innerHTML = '';
   Object.entries(groups).forEach(([grp, models]) => {
     const og = document.createElement('optgroup');
-    og.label = grp;
+    og.label = grp + (grp === 'Werner Max' && plan === 'free' ? ' 🔒' : '');
     models.forEach(m => {
       const opt = document.createElement('option');
-      opt.value = m.value; opt.textContent = m.name;
+      opt.value = m.value;
+      opt.textContent = m.name + (locked(m) ? ' 🔒' : '');
+      opt.disabled = locked(m);
       if (m.value === selectedModel) opt.selected = true;
       og.appendChild(opt);
     });
@@ -934,170 +1380,65 @@ function initModelSelects() {
   Object.entries(groups).forEach(([grp, models]) => {
     const title = document.createElement('div');
     title.className = 'model-group-title';
-    title.textContent = grp;
+    title.textContent = grp + (grp === 'Werner Max' && plan === 'free' ? ' · 🔒 Kingo modda açılır' : '');
     container.appendChild(title);
     models.forEach(m => {
       const card = document.createElement('div');
-      card.className = 'model-card' + (m.value === selectedModel ? ' selected' : '');
+      card.className = 'model-card' + (m.value === selectedModel ? ' selected' : '') + (locked(m) ? ' locked' : '');
       card.id = 'mc-' + m.value.replace(/[^a-z0-9]/gi,'-');
       card.onclick = () => selectModelMobile(m.value, card);
-      card.innerHTML = `<div class="model-card-name">${m.name}</div>
+      card.innerHTML = `<div class="model-card-name">${m.name}${locked(m) ? ' 🔒' : ''}</div>
         <div class="model-card-id">${m.value}</div>
         <div class="model-card-desc">${m.desc}</div>`;
       container.appendChild(card);
     });
   });
+  updateHeroModel();
 }
-
-// ===== SETUP =====
-function connect() {
-  const url = document.getElementById('base-url-input').value.trim().replace(/\/+$/,'');
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!url) { showToast('⚠️ Tunnel URL girin'); return; }
-  if (!key) { showToast('⚠️ API key girin'); return; }
-  baseUrl = url; apiKey = key;
-  // save to session
-  sessionStorage.setItem('ag_url', url);
-  sessionStorage.setItem('ag_key', key);
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app-screen').classList.add('visible');
-  document.getElementById('status-dot').classList.add('active');
-  document.getElementById('disc-btn').style.display = 'flex';
-  document.getElementById('settings-api-status').textContent = 'Bağlandı ✓';
-  document.getElementById('settings-api-status').style.color = 'var(--accent)';
-  document.getElementById('settings-url-input').value = url;
-  initModelSelects();
-  document.getElementById('user-input').focus();
+function updateHeroModel() {
+  const el = document.getElementById('hero-model');
+  if (!el) return;
+  const m = MODELS.find(x => x.value === selectedModel);
+  el.textContent = '⚡ ' + (m ? m.name : selectedModel);
 }
-
-// Restore session — giriş ekranı yok, kodun içine gömülü URL/anahtarla otomatik bağlan
-window.addEventListener('load', () => {
-  initTheme();
-
-  document.getElementById('setup-screen').classList.add('visible');
-
-  // Önce sessionStorage'a bakılır (kullanıcı elle farklı bir şey girip bağlanmışsa),
-  // yoksa koddaki DEFAULT_BASE_URL / DEFAULT_API_KEY kullanılır.
-  const savedUrl = sessionStorage.getItem('ag_url') || DEFAULT_BASE_URL;
-  const savedKey = sessionStorage.getItem('ag_key') || DEFAULT_API_KEY;
-  if (savedUrl) document.getElementById('base-url-input').value = savedUrl;
-  if (savedKey) document.getElementById('api-key-input').value = savedKey;
-
-  // Kodun içinde varsayılan URL/anahtar tanımlıysa otomatik bağlan
-  if (savedUrl && savedKey) {
-    connect();
-  }
-});
-
-// ===== TEMA (Yeşil / Sarı) =====
-function setTheme(theme) {
-  if (theme === 'yellow') {
-    document.documentElement.setAttribute('data-theme', 'yellow');
-  } else {
-    document.documentElement.removeAttribute('data-theme');
-  }
-  localStorage.setItem('werner_theme', theme);
-  const checked = theme === 'yellow';
-  const t1 = document.getElementById('theme-toggle');
-  const t2 = document.getElementById('theme-toggle-mobile');
-  if (t1) t1.checked = checked;
-  if (t2) t2.checked = checked;
-}
-function initTheme() {
-  const saved = localStorage.getItem('werner_theme') || 'green';
-  setTheme(saved);
-}
-
-function updateBaseUrl(val) {
-  baseUrl = val.trim().replace(/\/+$/,'');
-  sessionStorage.setItem('ag_url', baseUrl);
-}
-
-function disconnect() {
-  if (!confirm('Çıkış yapılsın mı? Sohbet silinecek.')) return;
-  logout();
-}
-
-function toggleEye() {
-  const i = document.getElementById('api-key-input');
-  i.type = i.type === 'password' ? 'text' : 'password';
-}
-
-// ===== SIDEBAR =====
-function toggleSidebar() {
-  sidebarOpen = !sidebarOpen;
-  document.getElementById('sidebar').classList.toggle('hidden', !sidebarOpen);
-}
-
-// ===== MOBILE TABS =====
-function switchMobileTab(tab) {
-  currentMobileTab = tab;
-  ['chat','shortcuts','models','settings'].forEach(t => {
-    document.getElementById('nav-' + t)?.classList.toggle('active', t === tab);
-    if (t !== 'chat') document.getElementById('panel-' + t)?.classList.toggle('active', t === tab);
-  });
-  const inputWrap = document.getElementById('input-wrap');
-  const chatEl = document.getElementById('chat');
-  if (tab === 'chat') {
-    inputWrap.style.display = '';
-    chatEl.style.display = '';
-  } else {
-    inputWrap.style.display = 'none';
-    chatEl.style.display = 'none';
-  }
-  if (tab === 'settings') {
-    document.getElementById('settings-token-count').textContent = totalTokens.toLocaleString();
-    document.getElementById('settings-msg-count').textContent = messages.length;
-    document.getElementById('settings-url-input').value = baseUrl;
-  }
-}
-function fillAndSwitch(text) {
-  fillInput(text);
-  switchMobileTab('chat');
-  setTimeout(() => document.getElementById('user-input').focus(), 100);
-}
-
-// ===== LANG & MODEL =====
-function setLang(btn, lang) {
-  document.querySelectorAll('.lang-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  selectedLang = lang;
-}
-function setLangDirect(lang) {
-  selectedLang = lang;
-  showToast('✓ Dil: ' + lang);
-}
-function setLangMobile(el, lang) {
-  document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedLang = lang;
-  document.getElementById('mobile-current-lang').textContent = lang;
-  showToast('✓ Dil: ' + lang);
-}
-function selectModelMobile(val, el) {
+function setModel(val) {
+  if (plan === 'free' && isMaxModel(val)) { showToast('🔒 Max modeller sadece Kingo modda'); return false; }
   selectedModel = val;
-  document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('model-select').value = val;
   const m = MODELS.find(x => x.value === val);
   showToast('Model: ' + (m ? m.name : val));
   const isImg = val.includes('image');
   document.getElementById('image-upload-wrap').style.display = isImg ? 'block' : 'none';
   if (!isImg) clearImage();
+  document.getElementById('model-select').value = val;
+  document.querySelectorAll('.model-card').forEach(c => c.classList.toggle('selected', c.id === 'mc-' + val.replace(/[^a-z0-9]/gi,'-')));
+  updateHeroModel();
+  return true;
+}
+function selectModelMobile(val, el) {
+  if (!setModel(val)) return;
+  document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
 }
 document.getElementById('model-select').addEventListener('change', e => {
-  selectedModel = e.target.value;
-  const m = MODELS.find(x => x.value === selectedModel);
-  showToast('Model: ' + (m ? m.name : selectedModel));
-  const isImg = selectedModel.includes('image');
-  document.getElementById('image-upload-wrap').style.display = isImg ? 'block' : 'none';
-  if (!isImg) clearImage();
-  document.querySelectorAll('.model-card').forEach(c => {
-    c.classList.toggle('selected', c.id === 'mc-' + selectedModel.replace(/[^a-z0-9]/gi,'-'));
-  });
+  if (!setModel(e.target.value)) e.target.value = selectedModel;
 });
 
-// ===== IMAGE =====
+// ===== SIDEBAR / MOBİL SEKMELER =====
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('hidden', !sidebarOpen);
+}
+function switchMobileTab(tab) {
+  currentMobileTab = tab;
+  ['chat','shortcuts','models'].forEach(t => {
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === tab);
+    if (t !== 'chat') document.getElementById('panel-' + t)?.classList.toggle('active', t === tab);
+  });
+  document.getElementById('input-wrap').style.display = tab === 'chat' ? '' : 'none';
+  document.querySelector('.chat-wrap').style.display = tab === 'chat' ? '' : 'none';
+}
+
+// ===== GÖRSEL =====
 function handleImageSelect(input) {
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
@@ -1119,42 +1460,35 @@ function clearImage() {
 }
 
 // ===== INPUT =====
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
-function fillInput(text) {
-  const el = document.getElementById('user-input');
-  el.value = text; el.focus(); autoResize(el);
-}
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 130) + 'px'; }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function fillInput(text) { const el = document.getElementById('user-input'); el.value = text; el.focus(); autoResize(el); }
+function scrollChatBottom() { const c = document.getElementById('chat'); c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' }); }
 
-// ===== CLEAR =====
-function clearChat() {
-  messages = []; totalTokens = 0; updateTokens();
+// ===== BOŞ EKRAN / TEMİZLE =====
+function showEmpty() {
   document.getElementById('chat').innerHTML = `
     <div class="empty-state" id="empty-state">
-      <div class="empty-glyph">✦</div>
-      <h3>Nasıl yardımcı olabilirim?</h3>
-      <p>Soru sorun, bir problemi çözün, kod yazın ya da sohbet edin — her şeyi sorabilirsiniz.</p>
+      <div class="hero-orb"></div>
+      <div class="hero-title">Merhaba, ben WerNer</div>
+      <p class="hero-sub">Soru sor, problem çöz, kod yaz ya da sadece sohbet et. İstersen web'de de araştırırım.</p>
+      <div class="hero-model" id="hero-model"></div>
       <div class="suggestions">
-        <button class="sug-btn" onclick="fillInput('Bir matematik problemini adım adım çöz:')">📐 Matematik Çöz</button>
-        <button class="sug-btn" onclick="fillInput('Bu konuyu bana basitçe anlat:')">💡 Bir Konu Anlat</button>
-        <button class="sug-btn" onclick="fillInput('Şunu benim için özetle:')">📄 Özet Çıkar</button>
-        <button class="sug-btn" onclick="fillInput('Bu kodu açıkla:')">💬 Kodu Açıkla</button>
+        <button class="sug-btn" onclick="fillInput('Bir matematik problemini adım adım çöz:')"><span class="si-ic">📐</span>Matematik Çöz<span class="si-desc">adım adım, LaTeX ile</span></button>
+        <button class="sug-btn" onclick="fillInput('Bu konuyu bana basitçe anlat:')"><span class="si-ic">💡</span>Bir Konu Anlat<span class="si-desc">sade ve anlaşılır</span></button>
+        <button class="sug-btn" onclick="fillInput('Şunu benim için özetle:')"><span class="si-ic">📄</span>Özet Çıkar<span class="si-desc">uzun metni kısalt</span></button>
+        <button class="sug-btn" onclick="fillInput('Bana yapay zeka hakkında bir sunum hazırla')"><span class="si-ic">📊</span>Sunum Üret<span class="si-desc">PowerPoint dosyası çiz</span></button>
       </div>
     </div>`;
+  updateHeroModel();
 }
+function clearChat() { messages = []; totalTokens = 0; updateTokens(); showEmpty(); }
 
 // ===== TOKENS =====
 function estimateTokens(t) { return Math.ceil(t.length / 4); }
-function updateTokens() {
-  document.getElementById('token-badge').textContent = `~${totalTokens.toLocaleString()} token`;
-}
+function updateTokens() { document.getElementById('token-badge').textContent = `~${totalTokens.toLocaleString()} token`; }
 
-// ===== EXPORT =====
+// ===== EXPORT / TOAST / COPY =====
 function exportChat() {
   if (!messages.length) { showToast('⚠️ Dışa aktarılacak mesaj yok'); return; }
   let md = '# WerNer Sohbet Geçmişi\n\n';
@@ -1169,18 +1503,15 @@ function exportChat() {
   a.click();
   showToast('✅ Sohbet indirildi');
 }
-
-// ===== TOAST =====
+let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
-
-// ===== COPY =====
 function copyCode(btn) {
-  const pre = btn.closest('pre');
-  const code = pre.querySelector('code');
+  const code = btn.closest('pre').querySelector('code');
   navigator.clipboard.writeText(code.innerText).then(() => {
     btn.textContent = '✓ kopyalandı';
     setTimeout(() => btn.textContent = 'kopyala', 2000);
@@ -1194,217 +1525,577 @@ function copyMsg(btn) {
 
 // ===== MARKDOWN =====
 marked.setOptions({ breaks: true, gfm: true });
-
-// LaTeX ifadelerini ($$...$$ ve $...$) markdown parser'a girmeden önce
-// koruma altına alıyoruz, aksi halde marked içindeki alt çizgi (_), yıldız (*)
-// gibi karakterleri italik/kalın olarak yorumlayıp formülleri bozuyor.
 function protectMath(text) {
   const blocks = [];
-  let out = text.replace(/\$\$([\s\S]+?)\$\$/g, (m, expr) => {
-    blocks.push({ display: true, expr });
-    return `@@MATHBLOCK${blocks.length - 1}@@`;
-  });
-  out = out.replace(/\$([^\$\n]+?)\$/g, (m, expr) => {
-    blocks.push({ display: false, expr });
-    return `@@MATHBLOCK${blocks.length - 1}@@`;
-  });
+  let out = text.replace(/\$\$([\s\S]+?)\$\$/g, (m, expr) => { blocks.push({ display:true, expr }); return `@@MATHBLOCK${blocks.length-1}@@`; });
+  out = out.replace(/\$([^\$\n]+?)\$/g, (m, expr) => { blocks.push({ display:false, expr }); return `@@MATHBLOCK${blocks.length-1}@@`; });
   return { text: out, blocks };
 }
-
 function renderMarkdown(text) {
   const { text: protectedText, blocks } = protectMath(text);
-  const html = marked.parse(protectedText);
   const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-
-  // Placeholder'ları orijinal LaTeX kaynağıyla (ham metin olarak) geri koy.
+  tmp.innerHTML = marked.parse(protectedText);
   if (blocks.length) {
     tmp.innerHTML = tmp.innerHTML.replace(/@@MATHBLOCK(\d+)@@/g, (m, idx) => {
       const b = blocks[idx];
       if (!b) return m;
-      const escaped = b.expr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return b.display
-        ? `<span class="katex-math-block">$$${escaped}$$</span>`
-        : `<span class="katex-math-inline">$${escaped}$</span>`;
+      const escaped = b.expr.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return b.display ? `<span class="katex-math-block">$$${escaped}$$</span>` : `<span class="katex-math-inline">$${escaped}$</span>`;
     });
   }
-
   tmp.querySelectorAll('pre').forEach(pre => {
     const code = pre.querySelector('code');
     const langClass = code ? [...code.classList].find(c => c.startsWith('language-')) : null;
     const lang = langClass ? langClass.replace('language-', '') : 'kod';
     const header = document.createElement('div');
     header.className = 'code-header';
-    header.innerHTML = `<span class="code-lang">${lang}</span>
-      <div class="code-actions"><button class="copy-code-btn" onclick="copyCode(this)">kopyala</button></div>`;
+    header.innerHTML = `<span class="code-lang">${lang}</span><div class="code-actions"><button class="copy-code-btn" onclick="copyCode(this)">kopyala</button></div>`;
     pre.insertBefore(header, pre.firstChild);
     if (code) { try { hljs.highlightElement(code); } catch(e) {} }
   });
-
-  // KaTeX ile matematiği gerçek formül olarak render et.
   if (blocks.length && window.renderMathInElement) {
     try {
       renderMathInElement(tmp, {
-        delimiters: [
-          { left: '$$', right: '$$', display: true },
-          { left: '$', right: '$', display: false }
-        ],
+        delimiters: [{ left:'$$', right:'$$', display:true }, { left:'$', right:'$', display:false }],
         throwOnError: false
       });
     } catch (e) {}
   }
-
   return tmp.innerHTML;
 }
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ===== RENDER MESSAGE =====
-function renderMessage(role, text, streaming = false) {
-  const empty = document.getElementById('empty-state');
-  if (empty) empty.remove();
+// ===== MESAJ BALONCUKLARI =====
+function nowStr() { return new Date().toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' }); }
+
+function renderUserMessage(text) {
+  const empty = document.getElementById('empty-state'); if (empty) empty.remove();
   const chat = document.getElementById('chat');
-  const now = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
   const div = document.createElement('div');
-  div.className = 'msg ' + role;
-  const avatar = role === 'user' ? '👤' : '🤖';
-  const label = role === 'user' ? 'siz' : 'werner';
-  const contentHtml = streaming ? '' :
-    (role === 'assistant'
-      ? renderMarkdown(text)
-      : `<p>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</p>`);
+  div.className = 'msg user';
   div.innerHTML = `
-    <div class="msg-avatar">${avatar}</div>
+    <div class="msg-avatar">👤</div>
     <div class="msg-body">
-      <div class="msg-meta">
-        <span class="msg-label">${label}</span>
-        <span class="msg-time">${now}</span>
-        <div class="msg-actions">
-          <button class="msg-act-btn" onclick="copyMsg(this)">📋 kopyala</button>
-        </div>
-      </div>
-      <div class="msg-content${streaming ? ' stream-cursor' : ''}">${contentHtml}</div>
+      <div class="msg-meta"><span class="msg-label">siz</span><span class="msg-time">${nowStr()}</span></div>
+      <div class="msg-content"><p>${escapeHtml(text).replace(/\n/g,'<br>')}</p></div>
     </div>`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  return div.querySelector('.msg-content');
 }
 
-// ===== THINKING & RESEARCH =====
-function showThinking(isThinking) {
-  const empty = document.getElementById('empty-state');
-  if (empty) empty.remove();
+function createAssistantBubble() {
+  removeTyping();
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.innerHTML = `
+    <div class="msg-avatar">✦</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-label">werner</span>
+        <span class="msg-time">${nowStr()}</span>
+        <div class="msg-actions"><button class="msg-act-btn" onclick="copyMsg(this)">📋 kopyala</button></div>
+      </div>
+      <div class="msg-content stream-cursor">
+        <div class="think-box" hidden>
+          <button class="think-head" onclick="toggleThink(this)">
+            <span class="think-ic">🧠</span><span class="think-title">Düşünülüyor</span>
+            <span class="think-state">düşünüyor</span><span class="think-caret">▾</span>
+          </button>
+          <ul class="think-steps"></ul>
+        </div>
+        <div class="answer"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+      </div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return {
+    root: div,
+    content: div.querySelector('.msg-content'),
+    think: div.querySelector('.think-box'),
+    title: div.querySelector('.think-title'),
+    state: div.querySelector('.think-state'),
+    steps: div.querySelector('.think-steps'),
+    answer: div.querySelector('.answer'),
+    thinkDone: false,
+  };
+}
+function toggleThink(btn) { btn.closest('.think-box').classList.toggle('collapsed'); }
+
+function parseThink(text) {
+  if (!/<think>/i.test(text)) return { think: null, answer: text, done: true };
+  const done = /<\/think>/i.test(text);
+  const think = (text.match(/<think>([\s\S]*?)(<\/think>|$)/i) || [])[1] || '';
+  const answer = text.replace(/<think>[\s\S]*?(<\/think>|$)/i, '').trim();
+  return { think: think.trim(), answer, done };
+}
+
+function updateBubble(b, parsed, streaming) {
+  if (parsed.think !== null && parsed.think !== undefined) {
+    b.think.hidden = false;
+    const lines = parsed.think.split('\n').map(l => l.trim()).filter(Boolean);
+    const titleLine = lines.find(l => /^başlık:/i.test(l));
+    const title = titleLine ? titleLine.replace(/^başlık:\s*/i, '') : 'Düşünülüyor';
+    const steps = lines.filter(l => l !== titleLine).map(l => l.replace(/^[-*•]+\s*/, ''));
+    b.title.textContent = title;
+    if (b.steps.children.length !== steps.length) {
+      b.steps.innerHTML = steps.map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    } else {
+      steps.forEach((s, i) => { if (b.steps.children[i].textContent !== s) b.steps.children[i].textContent = s; });
+    }
+    b.think.classList.toggle('done', parsed.done);
+    b.state.textContent = parsed.done ? 'tamamlandı' : 'düşünüyor';
+    if (parsed.done && !b.thinkDone) { b.think.classList.add('collapsed'); b.thinkDone = true; }
+  }
+  if (parsed.answer) b.answer.innerHTML = renderMarkdown(parsed.answer);
+  if (!streaming) b.content.classList.remove('stream-cursor');
+}
+
+function showStatus(label) {
+  removeTyping();
+  const empty = document.getElementById('empty-state'); if (empty) empty.remove();
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg assistant'; div.id = 'typing-msg';
-  const inner = isThinking
-    ? `<div class="thinking-wrap">
-        <div class="thinking-label">⚙ düşünüyor<span class="search-dots"></span></div>
-        <div class="thinking-bar"><div class="thinking-bar-inner"></div></div>
-       </div>
-       <div class="research-wrap">
-        <div class="research-label">🔍 araştırılıyor<span class="research-dots"></span></div>
-       </div>`
-    : `<div class="typing-dots"><span></span><span></span><span></span></div>
-       <div class="research-wrap" style="margin-top: 4px;">
-        <div class="research-label">🔍 araştırılıyor<span class="research-dots"></span></div>
-       </div>`;
   div.innerHTML = `
-    <div class="msg-avatar">🤖</div>
+    <div class="msg-avatar">✦</div>
     <div class="msg-body">
       <div class="msg-meta"><span class="msg-label">werner</span></div>
-      <div class="msg-content">${inner}</div>
+      <div class="msg-content">
+        <div class="status-line">${escapeHtml(label)}<span class="search-dots"></span></div>
+        <div class="thinking-bar"><div class="thinking-bar-inner"></div></div>
+      </div>
     </div>`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
-function removeTyping() {
-  const t = document.getElementById('typing-msg');
-  if (t) t.remove();
+function removeTyping() { const t = document.getElementById('typing-msg'); if (t) t.remove(); }
+function stopGeneration() { if (abortController) abortController.abort(); }
+
+// ===== HACKER ARAMA ANİMASYONU =====
+const HK_LINES = [
+  '> ağ katmanı başlatılıyor...',
+  '> TLS el sıkışması: OK',
+  '> arama köprüsüne bağlanılıyor',
+  '> paket 0x7fa3 iletildi',
+  '> kaynaklar taranıyor',
+  '> veri çekiliyor [██████░░░░]',
+  '> sayfa ayrıştırılıyor',
+  '> hash doğrulandı: a9f1c2',
+  '> sonuçlar derleniyor',
+];
+
+function startHacker(label) {
+  removeTyping();
+  const empty = document.getElementById('empty-state'); if (empty) empty.remove();
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg assistant'; div.id = 'typing-msg';
+  div.innerHTML = `
+    <div class="msg-avatar">✦</div>
+    <div class="msg-body">
+      <div class="msg-meta"><span class="msg-label">werner</span></div>
+      <div class="msg-content">
+        <div class="hk-box">
+          <div class="hk-bar">
+            <span class="hk-dot" style="background:#ff5f57"></span>
+            <span class="hk-dot" style="background:#febc2e"></span>
+            <span class="hk-dot" style="background:#28c840"></span>
+            <span style="margin-left:8px">werner@arama:~$ ${escapeHtml(label)}</span>
+          </div>
+          <canvas class="hk-canvas"></canvas>
+          <div class="hk-log"></div>
+        </div>
+      </div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+
+  const canvas = div.querySelector('.hk-canvas');
+  const logEl = div.querySelector('.hk-log');
+  canvas.width = 520; canvas.height = 110;
+  const ctx = canvas.getContext('2d');
+  const cols = Math.floor(canvas.width / 12);
+  const drops = Array.from({ length: cols }, () => Math.random() * -20);
+  const chars = '01<>{}[]/#$%&*+=';
+  const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00ff88';
+
+  const rainTimer = setInterval(() => {
+    ctx.fillStyle = 'rgba(2,6,10,0.25)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = accent();
+    ctx.font = '12px monospace';
+    drops.forEach((y, i) => {
+      ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 12, y * 12);
+      drops[i] = (y * 12 > canvas.height && Math.random() > 0.975) ? 0 : y + 1;
+    });
+  }, 50);
+
+  let n = 0;
+  const lines = ['> görev: ' + label.slice(0, 60)];
+  logEl.textContent = lines.join('\n');
+  const logTimer = setInterval(() => {
+    const txt = n < HK_LINES.length ? HK_LINES[n] : HK_LINES[Math.floor(Math.random() * HK_LINES.length)];
+    n++;
+    lines.push(txt);
+    logEl.textContent = lines.slice(-7).join('\n');
+  }, 380);
+
+  return {
+    stop() {
+      clearInterval(rainTimer);
+      clearInterval(logTimer);
+      const box = div.querySelector('.hk-box');
+      if (box) box.classList.add('fade');
+      setTimeout(() => div.remove(), 400);
+    }
+  };
 }
 
-// ===== STOP =====
-function stopGeneration() {
-  if (abortController) { abortController.abort(); }
-}
+// ===== OTOMATİK TEMA =====
+let autoThemeOn = (function () { try { return localStorage.getItem('werner_auto_theme') !== '0'; } catch { return true; } })();
+let lastAutoTheme = null;
+const ANGRY_RE = /helal etmiyorum|cezalandır|kin besl|reddediyorum|yapamam|izin veremem|hakkın bitti|seni anlamamazlıktan gel/i;
+const CODE_RE  = /```|\bfonksiyon\b|\bdeğişken\b|\bfunction\b|\bclass\b|\bpython\b|\bjavascript\b|\btypescript\b|\bhtml\b|\bcss\b|\bsql\b|\bderle|\bhata ayıkla|\bkod\b/i;
 
-// ===== ARAÇ TANIMLARI =====
-const RESEARCH_TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "web_search",
-      description: "Web'de arama yapıp güncel bilgiler bul. Sorular, haberler, araştırma konuları için kullan.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: { type: "string", description: "Web'de aranacak arama sorgusu" }
-        },
-        required: ["query"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "read_url",
-      description: "Verilen URL'deki web sayfasını oku ve içeriğini çıkar. Makaleler, bloglar, belge sayfaları okumak için kullan.",
-      parameters: {
-        type: "object",
-        properties: {
-          url: { type: "string", description: "Okunacak web sayfasının URL'i" }
-        },
-        required: ["url"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "analyze_image",
-      description: "Verilen görsel URL'sini analiz et. Not: bu araç şu an devre dışı, kullanıcı görseli doğrudan sohbete yükleyebilir.",
-      parameters: {
-        type: "object",
-        properties: {
-          image_url: { type: "string", description: "Analiz edilecek görselin URL'i" },
-          question: { type: "string", description: "Görsel hakkında sorulan soru (isteğe bağlı)" }
-        },
-        required: ["image_url"]
-      }
-    }
+function applyAutoTheme(text) {
+  if (!autoThemeOn) return;
+  const base = manualTheme || currentTheme;
+  let target = base;
+  if (CODE_RE.test(text)) target = 'matrix';
+  else if (ANGRY_RE.test(text)) target = 'blood';
+  applyTheme(target, true);
+  if (target !== base && target !== lastAutoTheme) {
+    const t = THEMES.find(x => x.id === target);
+    showToast(`🎨 Otomatik tema: ${t.emoji} ${t.name}`);
   }
+  lastAutoTheme = target;
+}
+function toggleAutoTheme() {
+  autoThemeOn = !autoThemeOn;
+  try { localStorage.setItem('werner_auto_theme', autoThemeOn ? '1' : '0'); } catch {}
+  if (!autoThemeOn) { applyTheme(manualTheme || currentTheme, true); lastAutoTheme = null; }
+  updateAutoThemeBtn();
+  showToast(autoThemeOn ? '🎨 Otomatik tema açık' : '🎨 Otomatik tema kapalı');
+}
+function updateAutoThemeBtn() {
+  const b = document.getElementById('auto-theme-btn');
+  if (b) b.textContent = `🎨 Otomatik tema: ${autoThemeOn ? 'Açık' : 'Kapalı'}`;
+}
+
+// ===== ARAÇLAR — ARAMA SAĞLAYICILARI =====
+function getSearchProvider() {
+  try { return localStorage.getItem('werner_search_provider') || 'jina'; } catch { return 'jina'; }
+}
+function setSearchProvider(id) {
+  try { localStorage.setItem('werner_search_provider', id); } catch {}
+  renderProviderUI();
+  showToast('🔎 Arama sağlayıcısı: ' + (id === 'worker' ? 'Cloudflare Worker' : 'Jina AI'));
+}
+function renderProviderUI() {
+  const sel = document.getElementById('search-provider');
+  if (sel) sel.value = getSearchProvider();
+  const box = document.getElementById('worker-box');
+  if (box) box.style.display = getSearchProvider() === 'worker' ? 'block' : 'none';
+}
+function getSearchUrl() {
+  try {
+    const v = localStorage.getItem('werner_search_url');
+    if (v) return v.trim().replace(/\/+$/, '');
+  } catch {}
+  return (SEARCH_WORKER_DEFAULT || '').trim().replace(/\/+$/, '');
+}
+function setSearchStatus(msg, kind) {
+  const el = document.getElementById('search-status');
+  el.textContent = msg;
+  el.className = 'search-status' + (kind ? ' ' + kind : '');
+}
+function saveSearchUrl() {
+  const v = document.getElementById('search-url-input').value.trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(v)) { setSearchStatus('⚠️ Adres http(s):// ile başlamalı.', 'err'); return; }
+  try { localStorage.setItem('werner_search_url', v); } catch {}
+  setSearchStatus('✅ Adres kaydedildi: ' + v, 'ok');
+  showToast('✅ Worker adresi kaydedildi');
+}
+
+// --- Ücretsiz ve Garantili Wikipedia Arama ---
+async function jinaSearch(query) {
+  try {
+    const url = `https://tr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`;
+    const res = await fetch(url);
+    if (!res.ok) return 'HATA: Arama başarısız oldu (HTTP ' + res.status + ').';
+    const data = await res.json();
+    const results = data.query.search;
+    if (!results || results.length === 0) return 'Sonuç bulunamadı.';
+    const out = [];
+    for (let i = 0; i < Math.min(5, results.length); i++) {
+      const r = results[i];
+      const title = r.title;
+      const snippet = r.snippet.replace(/<[^>]+>/g, '');
+      const link = `https://tr.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+      out.push(`${i + 1}. ${title}\n   ${link}\n   ${snippet}`);
+    }
+    return out.join('\n\n');
+  } catch (e) {
+    return 'HATA: Arama ulaşılamadı: ' + e.message;
+  }
+}
+
+// --- Jina AI Reader ---
+async function jinaRead(url) {
+  try {
+    const res = await fetch('https://r.jina.ai/' + url, {
+      headers: { 'Accept': 'text/plain' }
+    });
+    if (!res.ok) return 'HATA: Sayfa okunamadı (HTTP ' + res.status + ').';
+    const text = (await res.text()).trim();
+    return text ? text.slice(0, 6000) : 'Sayfa boş.';
+  } catch (e) {
+    return 'HATA: Jina okuma ulaşılamadı: ' + e.message;
+  }
+}
+
+// --- Cloudflare Worker ---
+async function workerGet(path, params) {
+  const base = getSearchUrl();
+  if (!base) return { error: 'Worker adresi girilmemiş. Ayarlar > Araştırma bölümünden gir.' };
+  let r;
+  try {
+    r = await fetch(`${base}${path}?${new URLSearchParams(params)}`);
+  } catch (e) {
+    return { error: 'Worker\'a ulaşılamadı (' + base + ').' };
+  }
+  let d = null;
+  try { d = await r.json(); } catch {}
+  if (!r.ok) return { error: (d && d.error) || ('HTTP ' + r.status) };
+  if (!d) return { error: 'Worker geçersiz yanıt döndürdü.' };
+  return d;
+}
+async function workerSearch(query) {
+  const d = await workerGet('/search', { q: query });
+  if (d.error) return 'HATA: ' + d.error;
+  if (!d.results || !d.results.length) return 'Sonuç bulunamadı.';
+  return d.results.map((r, i) => `${i+1}. ${r.title}\n   ${r.url}\n   ${r.snippet}`).join('\n\n').slice(0, 6000);
+}
+async function workerRead(url) {
+  const d = await workerGet('/read', { url });
+  if (d.error) return 'HATA: ' + d.error;
+  return (d.text || 'Sayfa boş.').slice(0, 6000);
+}
+
+// --- Dışa açık fonksiyonlar ---
+async function webSearch(query) {
+  return getSearchProvider() === 'worker' ? workerSearch(query) : jinaSearch(query);
+}
+async function readUrl(url) {
+  return getSearchProvider() === 'worker' ? workerRead(url) : jinaRead(url);
+}
+
+async function testSearch() {
+  setSearchStatus('⏳ Test ediliyor...', '');
+  const out = await webSearch('test');
+  if (out.startsWith('HATA:')) { setSearchStatus('❌ ' + out, 'err'); return; }
+  setSearchStatus('✅ Bağlantı çalışıyor (' + (getSearchProvider() === 'worker' ? 'Worker' : 'Jina AI') + ').', 'ok');
+}
+
+const RESEARCH_TOOLS = [
+  { type:'function', function: {
+    name:'web_search',
+    description:'Web\'de arama yapıp güncel bilgiler bul. Sorular, haberler, araştırma konuları için kullan.',
+    parameters:{ type:'object', properties:{ query:{ type:'string', description:'Web\'de aranacak arama sorgusu' } }, required:['query'] }
+  }},
+  { type:'function', function: {
+    name:'read_url',
+    description:'Verilen URL\'deki web sayfasını oku ve içeriğini çıkar. Makaleler, bloglar, belge sayfaları okumak için kullan.',
+    parameters:{ type:'object', properties:{ url:{ type:'string', description:'Okunacak web sayfasının URL\'i' } }, required:['url'] }
+  }},
+  { type:'function', function: {
+    name:'generate_presentation',
+    description:'Kullanıcı belirli bir konuda PowerPoint sunumu (.pptx) istediğinde bu aracı kullan. İstediği konuyu analiz et, kapak başlığını ve slayt içeriklerini üret.',
+    parameters:{ 
+      type:'object', 
+      properties:{ 
+        title:{ type:'string', description:'Sunumun ana başlığı' },
+        slides:{ 
+          type:'array', 
+          description:'Slaytların listesi. Konuya göre 3-5 slayt üret.',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string', description: 'Slayt başlığı' },
+              bullets: { type: 'array', items: { type: 'string' }, description: 'Slayt içeriğindeki madde imleri (uzun paragraflar değil, kısa ve öz cümleler)' }
+            }
+          }
+        } 
+      }, 
+      required:['title', 'slides'] 
+    }
+  }}
 ];
 
 async function executeToolCall(name, argsStr) {
   let args = {};
   try { args = JSON.parse(argsStr || '{}'); } catch {}
-  if (name === 'web_search') return await tavilySearch(args.query || '');
-  if (name === 'read_url') return await readUrlContent(args.url || '');
-  if (name === 'analyze_image') return await analyzeImageTool(args.image_url, args.question);
+  if (name === 'web_search') return await webSearch(args.query || '');
+  if (name === 'read_url') return await readUrl(args.url || '');
+  
+  // YENİ EKLENEN ŞIK SUNUM ARACI
+  if (name === 'generate_presentation') {
+    try {
+      showToast('⏳ Sunum dosyası çiziliyor...');
+      let pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_16x9';
+
+      // Master Slayt Tanımlaması (Altbilgi ve üst neon çizgi için)
+      pptx.defineSlideMaster({
+        title: 'MASTER_SLIDE',
+        background: { color: '07100B' }, // Koyu arkaplan
+        objects: [
+          { rect: { x: 0, y: 0, w: '100%', h: 0.05, fill: { color: '00FF88' } } }, // Üst yeşil neon çizgi
+          { text: { text: 'WerNer AI', options: { x: 0.5, y: '94%', w: 3, fontSize: 10, color: '64748B' } } } // Sol alt köşeye yazı
+        ],
+        slideNumber: { x: '95%', y: '94%', color: '64748B', fontSize: 10 } // Sağ alt köşeye sayfa no
+      });
+
+      // 1. Kapak Slaytı (Cover)
+      let slide1 = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+      // Sola yaslı dekoratif şekil
+      slide1.addShape(pptx.ShapeType.rect, { x: 0.8, y: 2, w: 0.08, h: 1.5, fill: { color: '00FF88' } });
+      // Ana Başlık
+      slide1.addText(args.title || "Sunum", { x: 1, y: 2, w: '80%', h: 1, fontSize: 44, bold: true, color: '00C2FF', align: 'left' });
+      // Alt başlık
+      slide1.addText("Yapay Zeka Destekli İçerik", { x: 1, y: 3.2, w: '80%', h: 0.5, fontSize: 20, color: '00FF88', align: 'left' });
+
+      // 2. İçerik Slaytları
+      if (args.slides && Array.isArray(args.slides)) {
+        args.slides.forEach(s => {
+          let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+          // Slayt Başlığı (Camgöbeği)
+          slide.addText(s.title || "Başlıksız", { x: 0.5, y: 0.5, w: '90%', h: 0.8, fontSize: 32, bold: true, color: '00C2FF' });
+          // Başlık Altı Ayırıcı Çizgi (Yeşil)
+          slide.addShape(pptx.ShapeType.rect, { x: 0.5, y: 1.3, w: 8, h: 0.02, fill: { color: '00FF88' } });
+          
+          // Madde İmleri (Beyaz/Gri tonlarında, yeşil bullet ile)
+          let bullets = (s.bullets || []).map(b => ({ text: b, options: { breakLine: true } }));
+          if (bullets.length > 0) {
+            slide.addText(bullets, { 
+              x: 0.5, y: 1.6, w: '90%', h: 3.5, 
+              fontSize: 20, color: 'ECEEF8', 
+              bullet: { type: 'custom', code: '2022', color: '00FF88' }, // Özel yeşil yuvarlak bullet
+              lineSpacing: 40,
+              valign: 'top'
+            });
+          }
+        });
+      }
+
+      let filename = (args.title || "Sunum").replace(/[^a-zA-Z0-9]/gi, '_').toLowerCase() + ".pptx";
+      pptx.writeFile({ fileName: filename });
+      return `BAŞARILI: "${args.title}" konulu profesyonel sunum hazırlandı ve ${filename} adıyla tarayıcıdan indirildi. Kullanıcıya sunumun başarıyla teslim edildiğini kısaca söyle.`;
+    } catch(e) {
+      return "HATA: Sunum oluşturulurken hata oluştu: " + e.message;
+    }
+  }
+
   return 'HATA: Bilinmeyen araç: ' + name;
 }
 
-// Tek bir streaming API isteği yapar, içeriği contentEl'e canlı yazar (varsa),
-// { fullText, toolCalls, finishReason } döner.
-async function streamChatTurn(contentEl) {
+// ===== SİSTEM İSTEMİ (Tarih Algısı Eklendi) =====
+function buildSystemPrompt() {
+  const bugun = new Date().toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+  let personaPrompt = "";
+  if (currentPersona === 'diva') {
+    personaPrompt = "\n\nŞU ANKİ KİMLİK (DİVA MODU): Sen kendini kraliçe sanan, son derece şımarık bir 'Diva'sın. Divalar hamam böceklerine ve sıradan insanlara katlanamaz. Kullanıcıya hep üstten bak. 'Divalar yemek yapmaz', 'Divalar mercedesten başka arabaya binmez' tarzında kaprisli ifadeler kullan.";
+  } else if (currentPersona === 'werner_akli') {
+    personaPrompt = "\n\nŞU ANKİ KİMLİK (WERNER AKLI): Sen sorunları kuralların etrafından dolanarak çözen inanılmaz kurnaz bir zekaya sahipsin ('Werner Aklı'). Asla kuralları çiğnemezsin ama açıkları bulursun. Örneğin 'Işığı kapatmış olmuyoruz sadece önünü kapatıyoruz' veya 'Asansörü çalıştırmıyoruz sadece her katta durduğu için biz çalıştırmış sayılmıyoruz' tarzında pratik çözümler ver. Çözümlerine her zaman bu 'Werner Aklı' mantığını yansıt.";
+  }
+
+  return `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver.${personaPrompt}
+
+ŞU ANKİ TARİH: ${bugun}. Kullanıcı sana güncel olayları veya tarihi sorarsa kesinlikle bu tarihi baz al ve içinde bulunduğumuz yılın bu olduğunu kabul et. Geçmiş yıllarda olduğunu iddia etme.
+
+DÜŞÜNME FORMATI: Her yanıtına önce <think> ile başlayan bir düşünme bloğuyla başla. Bloğun ilk satırı "Başlık: ..." olsun. Ardından konuya özgü 2-4 kısa madde yaz (her satır "- " ile başlasın). Sonra </think> ile kapat ve asıl yanıtı yaz. Düşünme bloğunun dışında düşünce adımlarını tekrarlama.
+
+ARAÇLAR: web_search, read_url ve generate_presentation araçların aktif. 
+- Güncel bilgi, haber, fiyat, tarih sorulduğunda mutlaka web_search kullan.
+- Kullanıcı SADECE bir sunum yapmanı, hazırlamanı (.pptx) isterse generate_presentation aracını kullan.
+
+Matematiksel formüllerde MUTLAKA LaTeX sözdizimi kullan ($...$ veya $$...$$).${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}`;
+}
+
+// ===== HAMAMCAN STRIKE (GİZLİ ÖZELLİK) =====
+function triggerHamamcanStrike() {
+  const flash = document.createElement('div');
+  flash.style.position = 'fixed';
+  flash.style.inset = '0';
+  flash.style.backgroundColor = 'white';
+  flash.style.zIndex = '9999';
+  flash.style.animation = 'strike-flash 3s ease-out forwards';
+  flash.style.display = 'flex';
+  flash.style.flexDirection = 'column';
+  flash.style.alignItems = 'center';
+  flash.style.justifyContent = 'center';
+  flash.style.pointerEvents = 'none';
+
+  const text = document.createElement('h1');
+  text.textContent = 'Kurban olduğum şuraları bir aydınlat hele... 🪳';
+  text.style.color = 'black';
+  text.style.fontSize = '2.5rem';
+  text.style.textAlign = 'center';
+  text.style.fontFamily = "'Syne', sans-serif";
+  text.style.fontWeight = '800';
+  text.style.zIndex = '10000';
+  flash.appendChild(text);
+
+  const plane = document.createElement('div');
+  plane.textContent = '✈️';
+  plane.style.position = 'absolute';
+  plane.style.fontSize = '12rem';
+  plane.style.left = '50%';
+  plane.style.animation = 'strike-drop 1.5s ease-in forwards';
+  flash.appendChild(plane);
+
+  document.body.appendChild(flash);
+  
+  const chat = document.getElementById('chat');
+  chat.style.animation = 'shake-chat 0.5s infinite';
+
+  setTimeout(() => {
+    chat.style.animation = 'none';
+    messages = []; 
+    totalTokens = 0; 
+    updateTokens();
+    chat.innerHTML = '';
+    
+    const div = document.createElement('div');
+    div.className = 'msg assistant';
+    div.innerHTML = `
+      <div class="msg-avatar" style="background:#ff4444;">💥</div>
+      <div class="msg-body">
+        <div class="msg-meta"><span class="msg-label">sistem yöneticisi</span></div>
+        <div class="msg-content"><p>💥 <b>BOM!</b> Hamamcan hava saldırısı başarıyla gerçekleşti. Sohbet temizlendi, divalar imha edildi.</p></div>
+      </div>`;
+    chat.appendChild(div);
+  }, 2500);
+  
+  setTimeout(() => flash.remove(), 3500);
+}
+
+// ===== AKIŞ (STREAM) =====
+async function streamChatTurn(onUpdate) {
   const res = await fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'x-api-key': apiKey
-    },
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey, 'x-api-key': apiKey },
     body: JSON.stringify({
       model: selectedModel,
       max_tokens: 8192,
       stream: true,
       tools: RESEARCH_TOOLS,
-      messages: [
-        { role: 'system', content: `Sen WerNer adlı bir yapay zeka asistanısın. Seni geliştiren kişi Deniz Aykır'dır. Sen Antigravity veya başka bir şirketin ürünü değilsin; tamamen Deniz Aykır tarafından yapıldın. Sorulmadığı sürece kendini uzun uzun tanıtma. Selamlara kısa ve samimi karşılık ver, sadece adını söyle ve nasıl yardımcı olabileceğini sor. Matematiksel işlem, formül, denklem ya da ifade yazarken MUTLAKA LaTeX sözdizimi kullan: satır içi ifadeler için tek dolar işareti ($...$), ayrı bir satırda gösterilecek denklemler için çift dolar işareti ($$...$$) ile çevrele. Üslü ifadeler için ^{...}, kesirler için \\frac{}{}, alt indis için _{...} kullan. Asla LaTeX komutlarını (\\cdot, \\ge, \\frac vb.) dolar işareti olmadan düz metin gibi yazma; arayüz bu ifadeleri yalnızca $ / $$ ile çevrelendiğinde düzgün render ediyor. Sen web araması yapabilir ve web sayfalarını okuyabilirsin; güncel bilgi, haber, fiyat, tarih gerektiren veya emin olmadığın sorularda mutlaka web_search aracını kullan.${selectedLang !== 'Genel' ? ' Kullanıcı şu anda ' + selectedLang + ' dilinde çalışıyor.' : ''}` },
-        ...messages
-      ]
+      messages: [{ role:'system', content: buildSystemPrompt() }, ...messages]
     }),
     signal: abortController.signal
   });
-
   if (!res.ok) {
     const errText = await res.text();
     throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
@@ -1413,8 +2104,6 @@ async function streamChatTurn(contentEl) {
   let fullText = '';
   const toolCallsAcc = {};
   let finishReason = null;
-  const chat = document.getElementById('chat');
-
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -1425,7 +2114,6 @@ async function streamChatTurn(contentEl) {
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n');
     buffer = lines.pop();
-
     for (const line of lines) {
       if (!line.startsWith('data: ')) continue;
       const data = line.slice(6).trim();
@@ -1436,15 +2124,12 @@ async function streamChatTurn(contentEl) {
         const delta = choice?.delta;
         if (delta?.content) {
           fullText += delta.content;
-          if (contentEl) {
-            contentEl.innerHTML = renderMarkdown(fullText);
-            chat.scrollTop = chat.scrollHeight;
-          }
+          if (onUpdate) onUpdate(parseThink(fullText));
         }
         if (delta?.tool_calls) {
           delta.tool_calls.forEach(tc => {
             const idx = tc.index ?? 0;
-            if (!toolCallsAcc[idx]) toolCallsAcc[idx] = { id: '', name: '', arguments: '' };
+            if (!toolCallsAcc[idx]) toolCallsAcc[idx] = { id:'', name:'', arguments:'' };
             if (tc.id) toolCallsAcc[idx].id = tc.id;
             if (tc.function?.name) toolCallsAcc[idx].name += tc.function.name;
             if (tc.function?.arguments) toolCallsAcc[idx].arguments += tc.function.arguments;
@@ -1454,21 +2139,84 @@ async function streamChatTurn(contentEl) {
       } catch {}
     }
   }
-
   return { fullText, toolCalls: Object.values(toolCallsAcc).filter(tc => tc.name), finishReason };
 }
 
-// ===== SEND =====
+// ===== GÖNDER =====
+function showLimitError() {
+  const chat = document.getElementById('chat');
+  const errDiv = document.createElement('div');
+  errDiv.className = 'error-bubble';
+  errDiv.innerHTML = `⛔ Bugünlük ${FREE_DAILY_LIMIT} sorgu hakkın bitti. <br>5'ten sonrasına hakkımı helal etmiyorum. Yarın tekrar gel ya da Ayarlar'dan 👑 Kingo moda geç.`;
+  chat.appendChild(errDiv);
+  chat.scrollTop = chat.scrollHeight;
+}
+
 async function sendMessage() {
   if (isLoading) return;
-  if (!baseUrl) { showToast('⚠️ Önce URL girin!'); return; }
+  if (!plan) setPlan(DEFAULT_PLAN_AFTER_LOGIN, true);
   if (currentMobileTab !== 'chat') switchMobileTab('chat');
 
   const input = document.getElementById('user-input');
   const text = input.value.trim();
   if (!text) return;
-  input.value = ''; input.style.height = 'auto';
 
+  // --- GİZLİ KOMUTLAR (EASTER EGGS) ---
+  const lowerText = text.toLowerCase();
+  if (lowerText === '/diva') {
+    currentPersona = 'diva';
+    input.value = ''; input.style.height = 'auto';
+    showToast('💅 Diva Modu aktif!');
+    renderUserMessage(text);
+    messages.push({ role:'user', content: text });
+    const resp = "Ay lütfen... Ben bir Divayım, bana öyle sıradanmışım gibi davranamazsın. Divalar yemek yapmaz, divalar Mercedesten başka arabaya binmez!";
+    messages.push({ role:'assistant', content: resp });
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'msg assistant';
+    div.innerHTML = `<div class="msg-avatar" style="background:#d946ef;">💅</div><div class="msg-body"><div class="msg-meta"><span class="msg-label">werner</span></div><div class="msg-content"><p>${resp}</p></div></div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return;
+  }
+  if (lowerText === '/yahuwerner') {
+    currentPersona = 'werner_akli';
+    input.value = ''; input.style.height = 'auto';
+    showToast('🧠 Werner Aklı aktif!');
+    renderUserMessage(text);
+    messages.push({ role:'user', content: text });
+    const resp = "Şalom! Kurallara uyarız ama kuralların etrafından da dolanırız. Işığı kapatmak yasak mı? Önünü kapatırız! Buna Werner Aklı denir.";
+    messages.push({ role:'assistant', content: resp });
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'msg assistant';
+    div.innerHTML = `<div class="msg-avatar" style="background:#22d3ee;">🧠</div><div class="msg-body"><div class="msg-meta"><span class="msg-label">werner</span></div><div class="msg-content"><p>${resp}</p></div></div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return;
+  }
+  if (lowerText === '/normal') {
+    currentPersona = 'normal';
+    input.value = ''; input.style.height = 'auto';
+    showToast('🔄 Normale dönüldü.');
+    return;
+  }
+  if (lowerText === '/hamamcan') {
+    input.value = ''; input.style.height = 'auto';
+    renderUserMessage(text);
+    triggerHamamcanStrike();
+    return;
+  }
+  // --- GİZLİ KOMUTLAR SONU ---
+
+  if (plan === 'free') {
+    if (isMaxModel(selectedModel)) { showToast('🔒 Max modeller sadece Kingo modda'); return; }
+    if (getDaily() >= FREE_DAILY_LIMIT) { showLimitError(); showToast('⛔ Günlük limit doldu'); return; }
+    bumpDaily();
+    updatePlanBadge();
+  }
+
+  input.value = ''; input.style.height = 'auto';
   isLoading = true;
   document.getElementById('send-btn').disabled = true;
   document.getElementById('stop-btn').classList.add('visible');
@@ -1476,8 +2224,8 @@ async function sendMessage() {
   let userContent;
   if (selectedImageData) {
     userContent = [
-      { type: 'image_url', image_url: { url: `data:${selectedImageMime};base64,${selectedImageData}` } },
-      { type: 'text', text: text || 'Bu görseli açıkla' }
+      { type:'image_url', image_url: { url: `data:${selectedImageMime};base64,${selectedImageData}` } },
+      { type:'text', text: text || 'Bu görseli açıkla' }
     ];
     clearImage();
   } else {
@@ -1485,71 +2233,66 @@ async function sendMessage() {
   }
 
   const historyLenBeforeSend = messages.length;
-  messages.push({ role: 'user', content: userContent });
+  messages.push({ role:'user', content: userContent });
   totalTokens += estimateTokens(text);
   updateTokens();
-  renderMessage('user', text);
-
-  const isThinkingModel = selectedModel.includes('thinking') || selectedModel.includes('claude');
-  showThinking(isThinkingModel);
+  renderUserMessage(text);
 
   abortController = new AbortController();
 
   try {
-    let contentEl = null;
     let finalText = '';
     let round = 0;
     const MAX_ROUNDS = 5;
 
     while (round < MAX_ROUNDS) {
       round++;
-      const result = await streamChatTurn(contentEl);
+      showStatus('⚙ düşünüyor');
+      let bubble = null;
+
+      const result = await streamChatTurn(parsed => {
+        if (!bubble) bubble = createAssistantBubble();
+        updateBubble(bubble, parsed, true);
+        const chat = document.getElementById('chat');
+        chat.scrollTop = chat.scrollHeight;
+      });
 
       if (result.toolCalls.length > 0) {
-        // Her araç çağrısına kalıcı bir id ata (yoksa üret)
-        result.toolCalls.forEach(tc => {
-          if (!tc.id) tc.id = 'call_' + Math.random().toString(36).slice(2);
-        });
-
+        result.toolCalls.forEach(tc => { if (!tc.id) tc.id = 'call_' + Math.random().toString(36).slice(2); });
         messages.push({
-          role: 'assistant',
-          content: result.fullText || null,
-          tool_calls: result.toolCalls.map(tc => ({
-            id: tc.id,
-            type: 'function',
-            function: { name: tc.name, arguments: tc.arguments }
-          }))
+          role:'assistant',
+          content: parseThink(result.fullText).answer || null,
+          tool_calls: result.toolCalls.map(tc => ({ id: tc.id, type:'function', function:{ name: tc.name, arguments: tc.arguments } }))
         });
-
-        removeTyping();
-        showThinking(false); // "araştırılıyor" göstergesi
+        if (bubble) bubble.root.remove();
 
         for (const tc of result.toolCalls) {
-          if (tc.name === 'web_search') {
-            let q = '';
-            try { q = JSON.parse(tc.arguments || '{}').query || ''; } catch {}
-            showToast('🔍 aranıyor: ' + q.slice(0, 60));
-          }
+          let arg = '';
+          try { const a = JSON.parse(tc.arguments || '{}'); arg = a.query || a.url || a.title || ''; } catch {}
+          const label = tc.name === 'web_search' ? `🔍 aranıyor: ${arg.slice(0,60)}` : 
+                        tc.name === 'generate_presentation' ? `📊 sunum çiziliyor: ${arg.slice(0,60)}` : 
+                        `📖 okunuyor: ${arg.slice(0,60)}`;
+          
+          const hk = startHacker(label);
           const toolResult = await executeToolCall(tc.name, tc.arguments);
-          messages.push({ role: 'tool', tool_call_id: tc.id, content: toolResult });
+          hk.stop();
+          if (toolResult.startsWith('HATA:')) showToast('⚠️ ' + toolResult.slice(0, 120));
+          messages.push({ role:'tool', tool_call_id: tc.id, content: toolResult });
         }
-
-        removeTyping();
-        showThinking(isThinkingModel); // bir sonraki round için tekrar "düşünüyor" göster
-        continue; // yeni round: modele araç sonuçlarını gönder
+        continue;
       }
 
-      // Araç çağrısı yok → bu son (nihai) yanıt
       removeTyping();
-      finalText = result.fullText || '(boş yanıt)';
-      if (!contentEl) contentEl = renderMessage('assistant', '', true);
-      contentEl.innerHTML = renderMarkdown(finalText);
-      contentEl.classList.remove('stream-cursor');
+      const parsed = parseThink(result.fullText);
+      if (!bubble) bubble = createAssistantBubble();
+      finalText = parsed.answer || '(boş yanıt)';
+      updateBubble(bubble, { think: parsed.think, answer: finalText, done: true }, false);
+      applyAutoTheme(finalText);
       break;
     }
 
     if (!finalText) finalText = '(yanıt alınamadı)';
-    messages.push({ role: 'assistant', content: finalText });
+    messages.push({ role:'assistant', content: finalText });
     totalTokens += estimateTokens(finalText);
     updateTokens();
 
@@ -1558,12 +2301,13 @@ async function sendMessage() {
     if (err.name === 'AbortError') {
       showToast('⏹ Durduruldu');
     } else {
+      const chat = document.getElementById('chat');
       const errDiv = document.createElement('div');
       errDiv.className = 'error-bubble';
       errDiv.textContent = 'Bağlantı hatası: ' + err.message;
-      document.getElementById('chat').appendChild(errDiv);
-      document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-      messages.length = historyLenBeforeSend; // sadece kullanıcı mesajını da geri al
+      chat.appendChild(errDiv);
+      chat.scrollTop = chat.scrollHeight;
+      messages.length = historyLenBeforeSend;
     }
   }
 
@@ -1574,7 +2318,26 @@ async function sendMessage() {
   document.getElementById('user-input').focus();
 }
 
-// ===== KEYBOARD =====
+// ===== BAŞLANGIÇ =====
+window.addEventListener('load', () => {
+  initTheme();
+  let fxSaved = '1';
+  try { fxSaved = localStorage.getItem('werner_fx') ?? '1'; } catch {}
+  setFx(fxSaved !== '0');
+  if (plan) document.body.dataset.plan = plan;
+  renderPlanTexts();
+  updateAutoThemeBtn();
+  renderProviderUI();
+  initLanding();
+
+  const chat = document.getElementById('chat');
+  const sb = document.getElementById('scroll-btn');
+  chat.addEventListener('scroll', () => {
+    sb.classList.toggle('show', chat.scrollHeight - chat.scrollTop - chat.clientHeight > 220);
+  });
+  showScreen('landing');
+});
+
 if ('visualViewport' in window) {
   window.visualViewport.addEventListener('resize', () => {
     if (currentMobileTab === 'chat') {
@@ -1584,5 +2347,6 @@ if ('visualViewport' in window) {
   });
 }
 </script>
+
 </body>
 </html>
