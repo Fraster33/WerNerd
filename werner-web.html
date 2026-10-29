@@ -1841,17 +1841,27 @@ async function jinaSearch(query) {
   }
 }
 
-// --- Jina AI Reader ---
+// --- Siteleri Okumak İçin (GitHub Pages Uyumlu CORS Proxy) ---
 async function jinaRead(url) {
   try {
-    const res = await fetch('https://r.jina.ai/' + url, {
-      headers: { 'Accept': 'text/plain' }
-    });
+    // GitHub'da CORS hatası yememek için allorigins köprüsünü kullanıyoruz
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+    const res = await fetch(proxyUrl);
     if (!res.ok) return 'HATA: Sayfa okunamadı (HTTP ' + res.status + ').';
-    const text = (await res.text()).trim();
+    
+    const data = await res.json();
+    
+    // Gelen ham HTML kodunu temizliyoruz (Scriptleri, stilleri ve etiketleri atıyoruz)
+    const text = data.contents
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ') // HTML etiketlerini boşlukla değiştir
+      .replace(/\s+/g, ' ')     // Fazla boşlukları temizle
+      .trim();
+      
     return text ? text.slice(0, 6000) : 'Sayfa boş.';
   } catch (e) {
-    return 'HATA: Jina okuma ulaşılamadı: ' + e.message;
+    return 'HATA: Okuma aracı engellendi: ' + e.message;
   }
 }
 
